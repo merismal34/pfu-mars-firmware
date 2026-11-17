@@ -1,0 +1,59 @@
+; hw_sections.src: the start-up module's section table, the first thing in the application's lo C
+; section. hw_init_ram_sections (hw_selftest.c) clears the B sections and the on-chip RAM and would
+; copy D to R; hw_init_ram_set3 does the same for the third set (flash code); hw_power_switch_enabled
+; and start_init (start.c) load the VBR from hw_vbr_value; hw_init_ram_sections/hw_init_ram_set3 also
+; use the memory blocks.
+; The section words are STARTOF/SIZEOF of the sections, declared empty at the end of this module
+; (the linker gives the whole linked section). Section sets: lo (D, R, B), the third set (D3, R_3,
+; B3: flash.c's `#pragma section 3`), hi (DH, RH, BH); BI the on-chip RAM, BM the memory block,
+; VECT the application's vector table (start_vectors.src).
+
+          .SECTION C,DATA,ALIGN=4
+          .EXPORT  _hw_section_table, _hw_section_lo_d_begin, _hw_section_lo_d_end, _hw_section_lo_b_begin, _hw_section_lo_b_end
+          .EXPORT  _hw_section_set3_d_rom, _hw_section_set3_d_begin, _hw_section_set3_d_end, _hw_section_set3_b_begin, _hw_section_set3_b_end
+          .EXPORT  _hw_section_onchip_begin, _hw_section_onchip_end
+          .EXPORT  _hw_section_hi_d_rom, _hw_section_hi_d_begin, _hw_section_hi_d_end, _hw_section_hi_b_begin, _hw_section_hi_b_end
+          .EXPORT  _hw_vbr_value, _hw_window_front_begin, _hw_window_front_end, _hw_window_back_begin, _hw_window_back_end, _hw_section_mem_begin, _hw_section_mem_end
+; lo set
+_hw_section_table: .DATA.L (STARTOF D)     ; D_ROM: lo D in ROM, used in place
+_hw_section_lo_d_begin: .DATA.L (STARTOF R)             ; D_BGN
+_hw_section_lo_d_end: .DATA.L (STARTOF R)+(SIZEOF R)  ; D_END (R empty)
+_hw_section_lo_b_begin: .DATA.L (STARTOF B)             ; B_BGN
+_hw_section_lo_b_end: .DATA.L (STARTOF B)+(SIZEOF B)  ; B_END (after the library's __errno)
+; third set (flash programming code, hw_init_ram_set3)
+_hw_section_set3_d_rom: .DATA.L (STARTOF D3)            ; D_ROM (empty D3 right after lo D)
+_hw_section_set3_d_begin: .DATA.L (STARTOF R_3)            ; D_BGN
+_hw_section_set3_d_end: .DATA.L (STARTOF R_3)+(SIZEOF R_3) ; D_END (empty)
+_hw_section_set3_b_begin: .DATA.L (STARTOF B3)            ; B_BGN
+_hw_section_set3_b_end: .DATA.L (STARTOF B3)+(SIZEOF B3) ; B_END
+; on-chip I/O and RAM range cleared by hw_init_ram_sections
+_hw_section_onchip_begin: .DATA.L (STARTOF BI)
+_hw_section_onchip_end: .DATA.L (STARTOF BI)+(SIZEOF BI)
+; hi set
+_hw_section_hi_d_rom: .DATA.L (STARTOF DH)            ; D_ROM: hi D in ROM, used in place
+_hw_section_hi_d_begin: .DATA.L (STARTOF RH)            ; D_BGN
+_hw_section_hi_d_end: .DATA.L (STARTOF RH)+(SIZEOF RH) ; D_END (empty)
+_hw_section_hi_b_begin: .DATA.L (STARTOF BH)            ; B_BGN
+_hw_section_hi_b_end: .DATA.L (STARTOF BH)+(SIZEOF BH) ; B_END
+; vector base (STARTOF of the vector table section, start_vectors.src) and memory blocks
+_hw_vbr_value: .DATA.L (STARTOF VECT)      ; VBR (start_init, hw_power_switch_enabled)
+_hw_window_front_begin: .DATA.L H'00C40000           ; hw_window_front_begin..hw_window_back_end: no reader in the code
+_hw_window_front_end: .DATA.L H'00C40800
+_hw_window_back_begin: .DATA.L H'00C60000
+_hw_window_back_end: .DATA.L H'00C60800
+_hw_section_mem_begin: .DATA.L (STARTOF BM)            ; hw_init_ram_sections (cleared if power_dump_inhibit == 0)
+_hw_section_mem_end: .DATA.L (STARTOF BM)+(SIZEOF BM) ; hw_init_ram_set3
+; the sections the table describes, empty here (STARTOF/SIZEOF need them declared in this module)
+          .SECTION VECT,DATA,ALIGN=4
+          .SECTION D,DATA,ALIGN=4
+          .SECTION R,DATA,ALIGN=4
+          .SECTION B,DATA,ALIGN=4
+          .SECTION D3,DATA,ALIGN=4
+          .SECTION R_3,DATA,ALIGN=4
+          .SECTION B3,DATA,ALIGN=4
+          .SECTION BI,DATA,ALIGN=4
+          .SECTION DH,DATA,ALIGN=4
+          .SECTION RH,DATA,ALIGN=4
+          .SECTION BH,DATA,ALIGN=4
+          .SECTION BM,DATA,ALIGN=4
+          .END

@@ -1,0 +1,22 @@
+; boot_vectors.src: vector table of boot program 1, the one the chip uses after reset (VBR = 0).
+; Reset goes to boot_reset with SP = 0 (the first push lands at the top of the address space, the
+; on-chip RAM); everything else to boot_isr_default (while (1) {}). Placed by its own START.
+
+          .SECTION VECT,DATA,ALIGN=4
+          .EXPORT  _boot_vectors
+          .IMPORT  _boot_reset
+          .IMPORT  _boot_isr_default
+
+_boot_vectors:
+          .DATA.L  _boot_reset        ; 0: power-on reset PC
+          .DATA.L  H'00000000       ; 1: power-on reset SP
+          .DATA.L  _boot_reset        ; 2: manual reset PC
+          .DATA.L  H'00000000       ; 3: manual reset SP
+          .DATA.L  _boot_isr_default        ; 4: general illegal instruction
+          .DATA.L  H'00000000       ; 5: reserved
+          .DATA.L  _boot_isr_default        ; 6: slot illegal instruction
+          .DATAB.L 2,H'00000000    ; 7-8: reserved
+          .DATAB.L 4,_boot_isr_default     ; 9-12: CPU address error, DMAC/DTC address error, NMI, user break
+          .DATA.L  H'00000000       ; 13: reserved
+          .DATAB.L 242,_boot_isr_default     ; 14-255: H-UDI, reserved, TRAPA, IRQ0, IRQ1, IRQ2, IRQ3, IRQ4, IRQ5, IRQ6, IRQ7, on-chip peripheral
+          .END

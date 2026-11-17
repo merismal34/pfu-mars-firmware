@@ -1,0 +1,37 @@
+; fw_update_vectors.src: vector table of boot program 2 (in RAM after boot_start_updater copies
+; it). Handlers are program 2 functions (the entries hold their run addresses); the reset vectors
+; are program 1's boot_reset. Placed by its own START; fw_update_start.src follows directly.
+
+          .SECTION VECT2,DATA,ALIGN=4
+          .EXPORT  _fw_update_vector_table
+          .IMPORT  _boot_reset
+          .IMPORT  _fw_update_isr_nmi
+          .IMPORT  _fw_update_isr_general_illegal
+          .IMPORT  _fw_update_isr_slot_illegal
+          .IMPORT  _fw_update_isr_address_error
+          .IMPORT  _fw_update_isr_dma_address_error
+          .IMPORT  _fw_update_isr_user_break
+          .IMPORT  _fw_update_isr_unused
+          .IMPORT  _fw_update_isr_irq3
+          .IMPORT  _fw_update_isr_cmi1
+
+_fw_update_vector_table:
+          .DATA.L  _boot_reset        ; 0: power-on reset PC
+          .DATA.L  H'00000000       ; 1: power-on reset SP
+          .DATA.L  _boot_reset        ; 2: manual reset PC
+          .DATA.L  H'00000000       ; 3: manual reset SP
+          .DATA.L  _fw_update_isr_general_illegal        ; 4: general illegal instruction
+          .DATA.L  H'00000000       ; 5: reserved
+          .DATA.L  _fw_update_isr_slot_illegal        ; 6: slot illegal instruction
+          .DATAB.L 2,H'00000000    ; 7-8: reserved
+          .DATA.L  _fw_update_isr_address_error        ; 9: CPU address error
+          .DATA.L  _fw_update_isr_dma_address_error        ; 10: DMAC/DTC address error
+          .DATA.L  _fw_update_isr_nmi        ; 11: NMI
+          .DATA.L  _fw_update_isr_user_break        ; 12: user break
+          .DATA.L  H'00000000       ; 13: reserved
+          .DATAB.L 53,_fw_update_isr_unused     ; 14-66: H-UDI, reserved, TRAPA, IRQ0, IRQ1, IRQ2
+          .DATA.L  _fw_update_isr_irq3        ; 67: IRQ3
+          .DATAB.L 80,_fw_update_isr_unused     ; 68-147: IRQ4, IRQ5, IRQ6, IRQ7, on-chip peripheral
+          .DATA.L  _fw_update_isr_cmi1        ; 148: on-chip peripheral
+          .DATAB.L 107,_fw_update_isr_unused     ; 149-255: on-chip peripheral
+          .END

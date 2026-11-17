@@ -1,0 +1,17 @@
+; boot_header.src: header of the boot block. boot_start_updater hands the version characters and
+; the block version bytes to program 2; boot_check_sums compares a 16-bit sum of program 2 with
+; boot_header_sum, but does nothing with the result, and the word is FFFF (never filled in).
+; Placed by its own START.
+
+          .SECTION HEADER,DATA,ALIGN=4
+          .EXPORT  _boot_header, _boot_firmware_version, _boot_firmware_version_1, _boot_firmware_version_2, _boot_firmware_version_3
+          .EXPORT  _boot_header_sum, _boot_block_version_hi, _boot_block_version_lo
+_boot_header: .SDATA  "MarsME  "              ; name
+_boot_firmware_version: .SDATA  "0"                     ; version "0003"
+_boot_firmware_version_1: .SDATA  "0"
+_boot_firmware_version_2: .SDATA  "0"
+_boot_firmware_version_3: .SDATA  "3"
+_boot_header_sum: .DATA.W H'FFFF                ; sum of program 2 (not filled in)
+_boot_block_version_hi: .DATA.B H'00
+_boot_block_version_lo: .DATA.B H'03
+          .END

@@ -1,0 +1,322 @@
+; fw_update_start.src: start-up stubs, delays, memory and divide helpers of boot program 2.
+; boot_start_updater copies program 2 to RAM and it runs there, so it is linked at the RAM address.
+; Between the vector table fw_update_vectors.src and fw_update_usb_ep0_run.c.
+; An older copy of rt.src (same routines, other order, no 32-bit divide).
+; Conventions: arguments r4-r7, result r0; none saves a register (r0-r7 are scratch for the
+; callers); pool words of the delays from MOV.L #imm (the assembler's automatic pool after the next
+; BRA/RTS), the start-up stubs' by hand (labels).
+
+          .SECTION P2,CODE,ALIGN=4
+          .EXPORT  _fw_update_entry, _fw_update_restart_boot
+          .EXPORT  _fw_update_delay_4, _fw_update_delay_8, _fw_update_delay_10, _fw_update_delay_20, _fw_update_delay_39, _fw_update_delay_58
+          .EXPORT  _fw_update_delay_97, _fw_update_delay_193, _fw_update_delay_386, _fw_update_delay_1932, _fw_update_delay_3862, _fw_update_delay_9656
+          .EXPORT  _fw_update_mem_clear, _fw_update_mem_clear_fast, _fw_update_mem_copy, _fw_update_mem_copy_fast, _fw_update_mem_equal
+          .EXPORT  _fw_update_mem_set, _fw_update_mem_set_fast, _fw_update_mem_compare_count, _fw_update_divu16
+          .IMPORT  _fw_update_main, _boot_reenter
+
+; fw_update_entry: SR.I = 15, VBR = 0x880000, SP = 0, jump to fw_update_main (program 2's
+; main); doesn't return. Clobbers r0-r3, r15, SR, VBR.
+_fw_update_entry:
+          MOV.L    #H'00880000,R1
+          MOV.L    L_ENTRY_A,R0
+          BRA      L_START
+          NOP
+; fw_update_restart_boot: SR.I = 15, VBR = 0, SP = 0, jump to boot_reenter in boot program 1,
+; which restarts the boot (boot_main(0, 1, a, b) with r4, r5 passed through);
+; doesn't return. Clobbers r0-r3, r15, SR, VBR.
+_fw_update_restart_boot:
+          MOV.L    L_VBR_B,R1
+          MOV.L    L_ENTRY_B,R0
+L_START:
+          STC      SR,R2
+          MOV.L    L_IMASK,R3
+          OR       R3,R2
+          LDC      R2,SR
+          LDC      R1,VBR
+          MOV.L    L_SP,R15
+          JMP      @R0
+          NOP
+L_VBR_B:  .DATA.L  H'00000000
+L_IMASK:  .DATA.L  H'000000F0
+L_SP:     .DATA.L  H'00000000
+L_ENTRY_A: .DATA.L _fw_update_main
+L_ENTRY_B: .DATA.L _boot_reenter
+
+; Delays, void f(void): busy loop of N iterations (2 instructions each); N is in the
+; name's comment. Clobber r2 (0 on return) and T.
+_fw_update_delay_4:                              ; N = 4
+          MOV.L    #4,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_8:                              ; N = 8
+          MOV.L    #8,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_10:                              ; N = 10
+          MOV.L    #10,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_20:                              ; N = 20
+          MOV.L    #20,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_39:                              ; N = 39
+          MOV.L    #39,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_58:                              ; N = 58
+          MOV.L    #58,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_97:                              ; N = 97
+          MOV.L    #97,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_193:                              ; N = 193
+          MOV.L    #193,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_386:                              ; N = 386
+          MOV.L    #386,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_1932:                              ; N = 1932
+          MOV.L    #1932,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_3862:                              ; N = 3862
+          MOV.L    #3862,R2
+          BRA      L_DELAY
+          NOP
+_fw_update_delay_9656:                              ; N = 9656
+          MOV.L    #9656,R2
+L_DELAY:
+          DT       R2
+          BF       L_DELAY
+          RTS
+          NOP
+
+; fw_update_mem_clear, void (unsigned char *p, int n): clear n bytes at p.
+; Clobbers r4 (p + n), r5 (-1), r6 (0), T.
+_fw_update_mem_clear:
+          BRA      L_CLRB_TEST
+          MOV      #0,R6
+L_CLRB_LOOP:
+          MOV.B    R6,@R4
+          ADD      #1,R4
+L_CLRB_TEST:
+          TST      R5,R5
+          BF/S     L_CLRB_LOOP
+          ADD      #-1,R5
+          RTS
+          NOP
+
+; fw_update_mem_clear_fast, void (void *p, int n): clear n bytes at p, by longs (n / 4 of them)
+; if p and n are multiples of 4, else as fw_update_mem_clear. Clobbers r0, r4-r6, T.
+_fw_update_mem_clear_fast:
+          MOV      R4,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CLRL_N
+          BRA      _fw_update_mem_clear
+          NOP
+          RTS
+          NOP
+L_CLRL_N:
+          MOV      R5,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CLRL
+          BRA      _fw_update_mem_clear
+          NOP
+          RTS
+          NOP
+L_CLRL:
+          SHLR2    R5
+          BRA      L_CLRL_TEST
+          MOV      #0,R6
+L_CLRL_LOOP:
+          ADD      #-1,R5
+          MOV.L    R6,@R4
+          ADD      #4,R4
+L_CLRL_TEST:
+          TST      R5,R5
+          BF       L_CLRL_LOOP
+          RTS
+          NOP
+
+; fw_update_mem_copy, void (void *dst, void *src, int n): copy n bytes.
+; Clobbers r3-r6, T.
+_fw_update_mem_copy:
+          BRA      L_CPYB_TEST
+          NOP
+L_CPYB_LOOP:
+          MOV.B    @R5+,R3
+          MOV.B    R3,@R4
+          ADD      #1,R4
+L_CPYB_TEST:
+          TST      R6,R6
+          BF/S     L_CPYB_LOOP
+          ADD      #-1,R6
+          RTS
+          NOP
+
+; fw_update_mem_copy_fast, void (void *dst, void *src, int n): copy n bytes, by longs if
+; dst, src and n are multiples of 4, else as fw_update_mem_copy. Clobbers r0, r3-r6, T.
+_fw_update_mem_copy_fast:
+          MOV      R4,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CPYL_S
+          BRA      _fw_update_mem_copy
+          NOP
+          RTS
+          NOP
+L_CPYL_S:
+          MOV      R5,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CPYL_N
+          BRA      _fw_update_mem_copy
+          NOP
+          RTS
+          NOP
+L_CPYL_N:
+          MOV      R6,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CPYL
+          BRA      _fw_update_mem_copy
+          NOP
+          RTS
+          NOP
+L_CPYL:
+          BRA      L_CPYL_TEST
+          SHLR2    R6
+L_CPYL_LOOP:
+          ADD      #-1,R6
+          MOV.L    @R5+,R3
+          MOV.L    R3,@R4
+          ADD      #4,R4
+L_CPYL_TEST:
+          TST      R6,R6
+          BF       L_CPYL_LOOP
+          RTS
+          NOP
+
+; fw_update_mem_equal, int (void *a, void *b, int n): 1 if the n bytes are equal, else 0.
+; Clobbers r2-r6, T.
+_fw_update_mem_equal:
+          BRA      L_CMP_TEST
+          NOP
+L_CMP_LOOP:
+          MOV.B    @R4+,R3
+          MOV.B    @R5+,R2
+          CMP/EQ   R2,R3
+          BT       L_CMP_TEST
+          RTS
+          MOV      #0,R0
+L_CMP_TEST:
+          TST      R6,R6
+          BF/S     L_CMP_LOOP
+          ADD      #-1,R6
+          RTS
+          MOV      #1,R0
+
+; fw_update_mem_set, void (void *p, int c, unsigned n): set n bytes at p to c.
+; Clobbers r2 (0), r4, r6, T.
+_fw_update_mem_set:
+          MOV.L    #0,R2
+L_SETB_TEST:
+          CMP/HI   R2,R6
+          BF       L_SETB_END
+          MOV.B    R5,@R4
+          ADD      #1,R4
+          BRA      L_SETB_TEST
+          DT       R6
+L_SETB_END:
+          RTS
+          NOP
+
+; fw_update_mem_set_fast, void (void *p, int c, int n): as fw_update_mem_set, by longs if p and n are
+; multiples of 4. The long is built with SHLL2 where SHLL8 was meant, so it is c * 0x55
+; (c | c << 2 | c << 4 | c << 6), not c in every byte: right only for c = 0. Clobbers
+; r0, r2, r4-r6, T.
+_fw_update_mem_set_fast:
+          MOV      R4,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_SETL_N
+          BRA      _fw_update_mem_set
+          NOP
+          RTS
+          NOP
+L_SETL_N:
+          MOV      R6,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_SETL
+          BRA      _fw_update_mem_set
+          NOP
+          RTS
+          NOP
+L_SETL:
+          MOV      R5,R2
+          SHLL2    R5
+          OR       R2,R5
+          SHLL2    R5
+          OR       R2,R5
+          SHLL2    R5
+          OR       R2,R5
+          BRA      L_SETL_TEST
+          SHLR2    R6
+L_SETL_LOOP:
+          ADD      #-1,R6
+          MOV.L    R5,@R4
+          ADD      #4,R4
+L_SETL_TEST:
+          TST      R6,R6
+          BF       L_SETL_LOOP
+          RTS
+          NOP
+
+; fw_update_mem_compare_count, int (void *a, void *b, int n, int *count): as fw_update_mem_equal, and
+; *count = the number of equal bytes before the first difference. Clobbers r2-r6, T.
+_fw_update_mem_compare_count:
+          MOV      #0,R3
+          BRA      L_CMPN_TEST
+          MOV.L    R3,@R7
+L_CMPN_LOOP:
+          MOV.B    @R4+,R3
+          MOV.B    @R5+,R2
+          CMP/EQ   R2,R3
+          BT       L_CMPN_NEXT
+          RTS
+          MOV      #0,R0
+L_CMPN_NEXT:
+          MOV.L    @R7,R2
+          ADD      #1,R2
+          MOV.L    R2,@R7
+L_CMPN_TEST:
+          TST      R6,R6
+          BF/S     L_CMPN_LOOP
+          ADD      #-1,R6
+          RTS
+          MOV      #1,R0
+
+; fw_update_divu16, unsigned short (unsigned a, unsigned short d): a / d, 16-bit
+; quotient (needs a < d << 16); d = 0 gives (unsigned short)a. Clobbers r4, r5, T, M, Q.
+_fw_update_divu16:
+          TST      R5,R5
+          BT       L_DIVW_END
+          SHLL16   R5
+          DIV0U
+          .AREPEAT 16
+          DIV1     R5,R4
+          .AENDR
+          ROTCL    R4
+L_DIVW_END:
+          EXTU.W   R4,R4
+          RTS
+          MOV      R4,R0
+          .END

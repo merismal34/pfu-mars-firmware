@@ -1,0 +1,58 @@
+; boot_start.src: start the application (boot program 1), and the table of program 2's sections
+; (the start of program 1's data). Between boot_entry.c and boot_main.c.
+; The pool words are placed by hand (labels).
+
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  _boot_start_app
+          .IMPORT  _start_entry
+
+; boot_start_app: mask interrupts (SR.I = 15), VBR = the application's vector table, SP = 0,
+; jump to the application's entry start_entry; doesn't return. Called last
+; by boot_main as boot_start_app(c, d): it reads no argument, r4-r7 reach start_entry unchanged.
+; Clobbers r0-r3, r15, SR, VBR.
+_boot_start_app:
+          MOV.L    L_VBR,R1
+          MOV.L    L_ENTRY,R0
+          STC      SR,R2
+          MOV.L    L_IMASK,R3
+          OR       R3,R2
+          LDC      R2,SR
+          LDC      R1,VBR
+          MOV.L    L_SP,R15
+          JMP      @R0
+          NOP
+L_VBR:    .DATA.L  H'00010000   ; the application's vectors (section VECT of the other link): a number that must follow the link
+L_IMASK:  .DATA.L  H'000000F0
+L_SP:     .DATA.L  H'00000000
+L_ENTRY:  .DATA.L  _start_entry
+
+; delay loop: r2 = count, counts it down to 0; clobbers r2, T. Nothing branches here; the
+; same tail as the delay routines of fw_update_start.src and rt.src (one source, copied).
+L_DELAY:  DT       R2
+          BF       L_DELAY
+          RTS
+          NOP
+
+; Program 2's sections, for boot_clear_iram (clears boot_iram_begin <= p < boot_iram_end) and
+; boot_start_updater (copies program 2's code to boot_update_code_begin <= dst < boot_update_code_end,
+; its vectors to boot_update_vectors, then runs it); boot_update_buf_begin/end (program 2's RAM B2)
+; has no reader. Section D, the first words of program 1's data (boot_main.c's follow).
+; STARTOF/SIZEOF of a section this module declares (empty) is the whole linked section; RVECT2, RP2
+; and RD2 are where program 2 runs (the linker's ROM option). The copy ends 2 bytes short of RD2's
+; end.
+          .SECTION D,DATA,ALIGN=4
+          .EXPORT  _boot_iram_begin, _boot_iram_end, _boot_update_buf_begin, _boot_update_buf_end
+          .EXPORT  _boot_update_code_begin, _boot_update_code_end, _boot_update_vectors
+_boot_iram_begin:        .DATA.L  (STARTOF BI)
+_boot_iram_end:          .DATA.L  (STARTOF BI)+(SIZEOF BI)
+_boot_update_buf_begin:  .DATA.L  (STARTOF B2)
+_boot_update_buf_end:    .DATA.L  (STARTOF B2)+(SIZEOF B2)
+_boot_update_code_begin: .DATA.L  (STARTOF RP2)
+_boot_update_code_end:   .DATA.L  (STARTOF RD2)+(SIZEOF RD2)-2
+_boot_update_vectors:    .DATA.L  (STARTOF RVECT2)
+          .SECTION BI,DATA,ALIGN=4
+          .SECTION B2,DATA,ALIGN=4
+          .SECTION RVECT2,DATA,ALIGN=4
+          .SECTION RP2,CODE,ALIGN=4
+          .SECTION RD2,DATA,ALIGN=4
+          .END
