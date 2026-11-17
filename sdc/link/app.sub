@@ -1,0 +1,191 @@
+; Application link.
+
+; Symbols defined by address: the externals no input of this link defines.
+
+; ---- names inside objects of this link's RAM sections: members, column views and aliases of a
+; variable another module defines (declared on their own in the headers)
+DEFINE _job_auto_size_flags_word(0FFFFE0E0)
+DEFINE _line_captured_lines_words(0FFFFE0FA)
+DEFINE _edge_top_lines_front(0FFFFE102)
+DEFINE _edge_event_20_lines_front(0FFFFE104)
+DEFINE _edge_top_lines_back(0FFFFE186)
+DEFINE _edge_event_20_lines_back(0FFFFE188)
+
+; ---- on-chip I/O registers and on-chip RAM that no module defines
+DEFINE _mdc_mailbox(0C40000)
+DEFINE _mdc_version(0C4000B)
+DEFINE _mdc_signature_gap_1(0C4000C)
+DEFINE _mdc_version_1(0C4000D)
+DEFINE _mdc_signature_gap_2(0C4000E)
+DEFINE _mdc_version_2(0C4000F)
+DEFINE _mdc_signature_gap_3(0C40010)
+DEFINE _mdc_version_3(0C40011)
+DEFINE _mdc_signature_gap_4(0C40012)
+DEFINE _mdc_info_table(0C40013)
+DEFINE _mdc_info_table_sums(0C40033)
+DEFINE _mdc_settings(0C40081)
+DEFINE _mdc_settings_8d(0C4019B)
+DEFINE _mdc_settings_8e(0C4019D)
+DEFINE _mdc_settings_8f(0C4019F)
+DEFINE _mdc_imprinter_version(0C404E5)
+DEFINE _mdc_imprinter_version_1(0C404E7)
+DEFINE _mdc_imprinter_version_2(0C404E9)
+DEFINE _mdc_imprinter_version_3(0C404EB)
+DEFINE _mdc_cmd_params(0C40681)
+DEFINE _mdc_back_window(0C60000)
+DEFINE _mdc_back_window_data(0C60001)
+DEFINE _mdc_back_window_data_2(0C60003)
+DEFINE _mdc_back_window_overlap_patterns(0C606F1)
+
+; ---- second views of constant and data objects: a name for a part of an object a module defines
+DEFINE _scsi_testmode_lens_column(084A452)
+
+; ---- ROM outside this link's sections: external flash (information block, settings sectors), device
+; addresses, the boot block
+DEFINE _flash_backup_area(087C000)
+DEFINE _flash_backup_slot_used(087C200)
+DEFINE _flash_backup_slot_current(087C201)
+DEFINE _flash_defect_area(087E200)
+DEFINE _dirt_defects_adf_front_1(087E300)
+DEFINE _dirt_defects_adf_front_2(087E400)
+DEFINE _dirt_defects_adf_back(087E500)
+DEFINE _dirt_defects_flatbed(087E800)
+DEFINE _dirt_defects_last_word(087EAFE)
+DEFINE _flash_settings_mirror(087EB00)
+
+; ---- functions by address: the other link's, or a second name of one of this link's
+DEFINE _boot_run_updater(0430)
+
+; inputs, in link order
+INPUT start.obj
+INPUT edge_result.obj
+INPUT start_vectors.obj
+INPUT rt.obj
+INPUT edge_search.obj
+INPUT edge_page_end.obj
+INPUT edge_fit_sums.obj
+INPUT edge_fit.obj
+INPUT edge_fit_solve.obj
+INPUT edge_bottom.obj
+INPUT edge_optional_passes.obj
+INPUT button.obj
+INPUT img_spline.obj
+INPUT img_spline_interp.obj
+INPUT hw_sections.obj
+INPUT scsi_inquiry.obj
+INPUT panel.obj
+INPUT err.obj
+INPUT img.obj
+INPUT job.obj
+INPUT job_calibrate.obj
+INPUT job_page_start.obj
+INPUT job_end.obj
+INPUT job_settings.obj
+INPUT job_pipeline.obj
+INPUT job_prepare.obj
+INPUT job_adf_start.obj
+INPUT scsi.obj
+INPUT xfer.obj
+INPUT xfer_length.obj
+INPUT xfer_wait.obj
+INPUT xfer_reselect.obj
+INPUT xfer_reconnect.obj
+INPUT xfer_dma.obj
+INPUT scsi_win_descriptor.obj
+INPUT scsi_win_header.obj
+INPUT scsi_win_pixels.obj
+INPUT scsi_win_units.obj
+INPUT scsi_cmd_layer.obj
+INPUT scsi_cmd_layer_states.obj
+INPUT maint_main.obj
+INPUT maint.obj
+INPUT testmode_stubs.obj
+INPUT testmode_board.obj
+INPUT testmode_exposure.obj
+INPUT testmode_adjust.obj
+INPUT testmode_mechanics.obj
+INPUT testmode_scan.obj
+INPUT testmode_pick_save.obj
+INPUT dirt_check.obj
+INPUT dirt_defects.obj
+INPUT edge_double.obj
+INPUT globals.obj
+INPUT dirt_line.obj
+INPUT hw_selftest.obj
+INPUT selftest_mark.obj
+INPUT line_calib.obj
+INPUT page_progress.obj
+INPUT jpeg.obj
+INPUT jpeg_buffer.obj
+INPUT mdc_command.obj
+INPUT tick.obj
+INPUT log.obj
+INPUT isr.obj
+INPUT isr_exception.obj
+INPUT power.obj
+INPUT mdc_feed.obj
+INPUT mdc_run.obj
+INPUT mdc_request.obj
+INPUT hook.obj
+INPUT mdc_paper_path.obj
+INPUT main.obj
+INPUT main_tasks.obj
+INPUT calib_task.obj
+INPUT console.obj
+INPUT uart_link.obj
+INPUT link_status.obj
+INPUT util_mem.obj
+INPUT util.obj
+INPUT iic.obj
+INPUT afe_usb.obj
+INPUT usb_bulk.obj
+INPUT usb_req_dispatch.obj
+INPUT usb_req_status.obj
+INPUT usb_req_feature.obj
+INPUT usb_req_descriptor.obj
+INPUT usb_ep0_setup.obj
+INPUT usb_ep0_data_in.obj
+INPUT usb_ep0_wait_in.obj
+INPUT usb_ep0_wait_status.obj
+INPUT usb_ep0_data_out.obj
+INPUT page_tick.obj
+INPUT page_multifeed.obj
+INPUT uart_link_commands.obj
+INPUT uart_link_params.obj
+INPUT uart_link_replies.obj
+INPUT link_reply.obj
+INPUT link_build.obj
+INPUT panel_expander_init.obj
+INPUT panel_expander_init_dark.obj
+INPUT panel_expander_reset.obj
+INPUT panel_expander_port1.obj
+INPUT panel_expander_update.obj
+INPUT iic_eeprom_load.obj
+INPUT usb_timers.obj
+INPUT usb_init.obj
+INPUT usb_error_state.obj
+INPUT flash.obj
+INPUT flash_dump.obj
+INPUT page_complete.obj
+INPUT img_fill.obj
+INPUT page_stall.obj
+INPUT globals_hi.obj
+INPUT kept_state.obj
+INPUT dump_log.obj
+INPUT globals_onchip.obj
+
+; the runtime library: its members follow the last lo code input in P
+LIBRARY ..\lib\rtlib.lib
+
+; sections: one START per block
+START VECT,PSTART,P,C,D,D3,P3(010000)
+START PH,CH,DH(0800000)
+START R,B,RH,BH,R_3,B3(0400500)
+START BM(041E000)
+START BI(0FFFFE000)
+
+FORM A
+ENTRY _start_entry
+OUTPUT app.abs
+PRINT app.map
+EXIT

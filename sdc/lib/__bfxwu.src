@@ -1,0 +1,38 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __bfxwu
+__bfxwu:
+          SWAP.B   R1,R0
+          MOV.L    R1,@-R15
+          EXTU.B   R1,R1
+          MOV.L    R2,@-R15
+          EXTU.B   R0,R0
+          MOV.W    @R2,R2
+          TST      R0,R0
+          BT       bfxwu_L1
+bfxwu_L2:
+          DT       R0
+          BT/S     bfxwu_L1
+          SHLL     R2
+          DT       R0
+          BF/S     bfxwu_L2
+          SHLL     R2
+bfxwu_L1:
+          MOV      #16,R0
+          SUB      R1,R0
+          TST      R0,R0
+          BT       bfxwu_L3
+          EXTU.W   R2,R2
+bfxwu_L4:
+          DT       R0
+          BT/S     bfxwu_L3
+          SHLR     R2
+          DT       R0
+          BF/S     bfxwu_L4
+          SHLR     R2
+bfxwu_L3:
+          EXTU.W   R2,R0
+bfxwu_end:
+          MOV.L    @R15+,R2
+          RTS
+          MOV.L    @R15+,R1
+          .END

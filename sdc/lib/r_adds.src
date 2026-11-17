@@ -1,0 +1,350 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __adds
+          .EXPORT  __subs
+__subs:
+          ROTL     R0
+          XOR      #1,R0
+          ROTR     R0
+__adds:
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          ROTL     R1
+          MOV.L    R4,@-R15
+          ROTL     R0
+          MOV.L    R5,@-R15
+          MOV.L    R6,@-R15
+          MOV.L    R7,@-R15
+          CMP/HS   R0,R1
+          BT       rotation
+          MOV      R0,R2
+          MOV      R1,R0
+          MOV      R2,R1
+rotation:
+          ROTR     R1
+          ROTR     R0
+          MOV.L    EXP_INF,R3
+          MOV      R1,R6
+          SHLL     R1
+          MOV      R1,R4
+          SHLR16   R4
+          SHLR8    R4
+          AND      R3,R4
+          SHLL8    R1
+          MOV      R0,R7
+          SHLL     R0
+          MOV      R0,R5
+          SHLR16   R5
+          SHLR8    R5
+          AND      R3,R5
+          SHLL8    R0
+          CMP/EQ   R3,R4
+          BT       exception1
+          TST      R5,R5
+          BT       exception2
+exception_return:
+          OR       #1,R0
+          ROTR     R0
+          ROTCR    R1
+          SUB      R4,R5
+          TST      R5,R5
+          BT       end_sftr
+          MOV      #-25,R2
+          CMP/GT   R5,R2
+          BT       e_sftr26
+          NEG      R0,R3
+          XOR      R0,R3
+          MOV      R0,R2
+          MOVA     a_sftrtbl,R0
+          SHLL2    R5
+          SUB      R5,R0
+          MOV.L    @R0,R0
+label:
+          BRAF     R0
+          MOV      R2,R0
+e_sftr26:
+          BRA      end_sftr
+          MOV      #32,R0
+or_sticky:
+          SHLR     R3
+          MOVT     R3
+          OR       R3,R0
+end_sftr:
+          DIV0S    R6,R7
+          BT       mantissa_sub
+          ADDC     R1,R0
+          BF       end_calc
+          ROTCR    R0
+          MOVT     R2
+          MOV.L    EXP_INF,R3
+          ADD      #1,R4
+          CMP/EQ   R3,R4
+          BF/S     end_calc
+          OR       R2,R0
+          BRA      return_value
+          MOV      #0,R0
+mantissa_sub:
+          CMP/EQ   R1,R0
+          BT       plus_zero
+          SUBC     R1,R0
+          NEG      R0,R0
+          MOV      R6,R7
+normalize:
+          SHLL     R0
+          BT       normal
+          SHLL     R0
+          BT/S     normal
+          ADD      #-1,R4
+          MOV.L    HALF,R2
+          CMP/HI   R0,R2
+          BF/S     n_sftl_8
+          ADD      #-1,R4
+          SHLL16   R0
+          ADD      #-16,R4
+n_sftl_8:
+          SHLL8    R2
+          CMP/HI   R0,R2
+          BF/S     n_sftl_4
+          SHLL2    R2
+          SHLL8    R0
+          ADD      #-8,R4
+n_sftl_4:
+          SHLL2    R2
+          CMP/HI   R0,R2
+          BF/S     n_sftl_2
+          SHLL2    R2
+          SHLL2    R0
+          SHLL2    R0
+          ADD      #-4,R4
+n_sftl_2:
+          CMP/HI   R0,R2
+          BF       n_sftl_1
+          SHLL2    R0
+          ADD      #-2,R4
+n_sftl_1:
+          SHLL     R0
+          BT       normal
+          SHLL     R0
+          ADD      #-1,R4
+normal:
+          ROTCR    R0
+end_calc:
+          CMP/PL   R4
+          BT       end_denormal
+          NEG      R4,R4
+          ADD      #1,R4
+denormalize_loop:
+          DT       R4
+          BF/S     denormalize_loop
+          SHLR     R0
+end_denormal:
+          TST      #128,R0
+          BT       return_value
+          MOV.L    LRS,R2
+          TST      R2,R0
+          BT       return_value
+          MOV.L    MAN_1,R2
+          ADDC     R2,R0
+          BF       return_value
+round_carry:
+          ROTCR    R0
+          ADD      #1,R4
+return_value:
+end_round:
+          SHLL     R0
+          SHLR8    R0
+          SHLL16   R4
+          SHLL8    R4
+          OR       R4,R0
+          SHLL     R7
+          ROTCR    R0
+return:
+          MOV.L    @R15+,R7
+          MOV.L    @R15+,R6
+          MOV.L    @R15+,R5
+          MOV.L    @R15+,R4
+          MOV.L    @R15+,R3
+          RTS
+          MOV.L    @R15+,R2
+exception1:
+          TST      R1,R1
+          BF       return_NaN
+          DIV0S    R6,R7
+          BF       return_inf
+          MOV      R6,R7
+          CMP/EQ   R3,R5
+          BF       return_inf
+return_NaN:
+          MOV.L    NaN,R0
+          BRA      return
+          NOP
+return_inf:
+          BRA      return_value
+          MOV      #0,R0
+exception2:
+          TST      R4,R4
+          BF       p2_denorm_check
+          TST      R1,R1
+          BF       p1_denorm
+          BRA      return_value
+          AND      R6,R7
+p2_denorm_check:
+          TST      R0,R0
+          BT       return_parm1
+          BRA      p2_normalize
+          NOP
+p1_denorm:
+          TST      R0,R0
+          BT       return_parm1
+          SHLL     R1
+          BT       p2_normalize
+p1_norm_loop:
+          SHLL     R1
+          BF/S     p1_norm_loop
+          ADD      #-1,R4
+p2_normalize:
+end_p1_norm:
+          SHLL     R0
+          BT       end_p2_norm
+p2_norm_loop:
+          SHLL     R0
+          BF/S     p2_norm_loop
+          ADD      #-1,R5
+end_p2_norm:
+          BRA      exception_return
+          NOP
+plus_zero:
+          MOV      #0,R7
+return_zero:
+          MOV      #0,R4
+          BRA      return_value
+          MOV      #0,R0
+return_parm1:
+          MOV      R1,R0
+          SHLR     R0
+          BRA      return_value
+          MOV      R6,R7
+e_sftr7:
+          SHLR2    R0
+e_sftr5:
+          SHLR2    R0
+e_sftr3:
+          SHLR2    R0
+e_sftr1:
+          BRA      end_sftr
+          SHLR     R0
+e_sftr6:
+          SHLR2    R0
+e_sftr4:
+          SHLR2    R0
+e_sftr2:
+          BRA      end_sftr
+          SHLR2    R0
+e_sftr15:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr13:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr11:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr9:
+          SHLR     R0
+          SHLR     R3
+          SHLR8    R0
+          BRA      or_sticky
+          SHLR8    R3
+e_sftr14:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr12:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr10:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr8:
+          SHLR8    R0
+          BRA      or_sticky
+          SHLR8    R3
+e_sftr23:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr21:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr19:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr17:
+          SHLR     R0
+          SHLR     R3
+          SHLR16   R0
+          BRA      or_sticky
+          SHLR16   R3
+e_sftr22:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr20:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr18:
+          SHLR2    R0
+          SHLR2    R3
+e_sftr16:
+          SHLR16   R0
+          BRA      or_sticky
+          SHLR16   R3
+e_sftr25:
+          SHLR     R0
+          SHLR     R3
+          SHLR8    R0
+          SHLR8    R3
+          SHLR16   R0
+          BRA      or_sticky
+          SHLR16   R3
+e_sftr24:
+          SHLR8    R0
+          SHLR8    R3
+          SHLR16   R0
+          BRA      or_sticky
+          SHLR16   R3
+          .DATA.W  H'0009   ; nop
+a_sftrtbl:
+          .DATA.L  H'00000000
+          .DATA.L  H'0000010C
+          .DATA.L  H'00000114
+          .DATA.L  H'0000010A
+          .DATA.L  H'00000112
+          .DATA.L  H'00000108
+          .DATA.L  H'00000110
+          .DATA.L  H'00000106
+          .DATA.L  H'0000013A
+          .DATA.L  H'00000124
+          .DATA.L  H'00000136
+          .DATA.L  H'00000120
+          .DATA.L  H'00000132
+          .DATA.L  H'0000011C
+          .DATA.L  H'0000012E
+          .DATA.L  H'00000118
+          .DATA.L  H'00000162
+          .DATA.L  H'0000014C
+          .DATA.L  H'0000015E
+          .DATA.L  H'00000148
+          .DATA.L  H'0000015A
+          .DATA.L  H'00000144
+          .DATA.L  H'00000156
+          .DATA.L  H'00000140
+          .DATA.L  H'00000176
+          .DATA.L  H'00000168
+EXP_INF:
+          .DATA.L  H'000000FF
+HALF:
+          .DATA.L  H'00010000
+LRS:
+          .DATA.L  H'0000017F
+MAN_1:
+          .DATA.L  H'00000100
+NaN:
+          .DATA.L  H'7F800001
+          .END

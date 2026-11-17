@@ -1,0 +1,105 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __quick_mvn
+__quick_mvn:
+          MOV.L    R3,@-R15
+          MOV      #64,R3
+          CMP/HS   R0,R3
+          BF       FMVN_slow
+FMVN_FAST:
+          MOV.L    A_FMVN_TBL,R3
+          MOV.L    @(R0,R3),R3
+          JMP      @R3
+          NOP
+A_FMVN_TBL:
+          .DATA.L  FMVN_TBL
+          .DATA.W  H'0009   ; nop
+FMVN_64:
+          MOV.L    @(60,R2),R0
+          MOV.L    R0,@(60,R1)
+FMVN_60:
+          MOV.L    @(56,R2),R0
+          MOV.L    R0,@(56,R1)
+FMVN_56:
+          MOV.L    @(52,R2),R0
+          MOV.L    R0,@(52,R1)
+FMVN_52:
+          MOV.L    @(48,R2),R0
+          MOV.L    R0,@(48,R1)
+FMVN_48:
+          MOV.L    @(44,R2),R0
+          MOV.L    R0,@(44,R1)
+FMVN_44:
+          MOV.L    @(40,R2),R0
+          MOV.L    R0,@(40,R1)
+FMVN_40:
+          MOV.L    @(36,R2),R0
+          MOV.L    R0,@(36,R1)
+FMVN_36:
+          MOV.L    @(32,R2),R0
+          MOV.L    R0,@(32,R1)
+FMVN_32:
+          MOV.L    @(28,R2),R0
+          MOV.L    R0,@(28,R1)
+FMVN_28:
+          MOV.L    @(24,R2),R0
+          MOV.L    R0,@(24,R1)
+FMVN_24:
+          MOV.L    @(20,R2),R0
+          MOV.L    R0,@(20,R1)
+FMVN_20:
+          MOV.L    @(16,R2),R0
+          MOV.L    R0,@(16,R1)
+FMVN_16:
+          MOV.L    @(12,R2),R0
+          MOV.L    R0,@(12,R1)
+FMVN_12:
+          MOV.L    @(8,R2),R0
+          MOV.L    R0,@(8,R1)
+FMVN_8:
+          MOV.L    @(4,R2),R0
+          MOV.L    R0,@(4,R1)
+FMVN_4:
+          MOV.L    @R2,R0
+          MOV.L    R0,@R1
+FMVN_0:
+          RTS
+          MOV.L    @R15+,R3
+          .DATA.W  H'0009   ; nop
+FMVN_TBL:
+          .DATA.L  FMVN_0
+          .DATA.L  FMVN_4
+          .DATA.L  FMVN_8
+          .DATA.L  FMVN_12
+          .DATA.L  FMVN_16
+          .DATA.L  FMVN_20
+          .DATA.L  FMVN_24
+          .DATA.L  FMVN_28
+          .DATA.L  FMVN_32
+          .DATA.L  FMVN_36
+          .DATA.L  FMVN_40
+          .DATA.L  FMVN_44
+          .DATA.L  FMVN_48
+          .DATA.L  FMVN_52
+          .DATA.L  FMVN_56
+          .DATA.L  FMVN_60
+          .DATA.L  FMVN_64
+FMVN_slow:
+          MOV.L    R2,@-R15
+          MOV      R2,R3
+          ADD      R0,R3
+FMVN_L:
+          MOV.L    @R2+,R0
+          CMP/HS   R2,R3
+          BF       FMVN_END
+          MOV.L    R0,@R1
+          MOV.L    @R2+,R0
+          CMP/HS   R2,R3
+          BF       FMVN_END
+          MOV.L    R0,@(4,R1)
+          BRA      FMVN_L
+          ADD      #8,R1
+FMVN_END:
+          MOV.L    @R15+,R2
+          RTS
+          MOV.L    @R15+,R3
+          .END

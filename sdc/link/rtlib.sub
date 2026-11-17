@@ -1,0 +1,38 @@
+; Librarian subcommands for the runtime library (lib/). Members in alphabetical order: the linker
+; takes the ones the application needs in this order.
+CREATE rtlib.lib
+ADD __bfsbu.obj
+ADD __bfslu.obj
+ADD __bfswu.obj
+ADD __bfxbu.obj
+ADD __bfxwu.obj
+ADD __divls.obj
+ADD __divlu.obj
+ADD __dtoid.obj
+ADD __i_sqrd.obj
+ADD __idtod.obj
+ADD __modls.obj
+ADD __modlu.obj
+ADD __q_fmvn.obj
+ADD __q_mvn.obj
+ADD __s_mvn.obj
+ADD abs.obj
+ADD errno.obj
+ADD r_addd.obj
+ADD r_adds.obj
+ADD r_divd.obj
+ADD r_divs.obj
+ADD r_dtoi.obj
+ADD r_eqd.obj
+ADD r_gtd.obj
+ADD r_itod.obj
+ADD r_itos.obj
+ADD r_ltd.obj
+ADD r_muld.obj
+ADD r_muls.obj
+ADD r_ned.obj
+ADD r_stoi.obj
+ADD r_utod.obj
+ADD r_utos.obj
+ADD sqrt.obj
+EXIT

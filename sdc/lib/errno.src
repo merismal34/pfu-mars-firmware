@@ -1,0 +1,7 @@
+; errno: the C library's error variable (__errno, 4 bytes, section B). The library routines that
+; set it (__divls, __divlu, __modls, __modlu, sqrt) import it.
+
+          .SECTION B,DATA,ALIGN=4
+          .EXPORT  __errno
+__errno:  .RES.L   1
+          .END

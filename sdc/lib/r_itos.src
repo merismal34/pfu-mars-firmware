@@ -1,0 +1,53 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __itos
+__itos:
+          TST      R0,R0
+          BT       return_zero
+          MOV.L    R1,@-R15
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          MOV      #0,R3
+          CMP/PZ   R0
+          BT       end_negate
+          MOV      #1,R3
+          NEG      R0,R0
+end_negate:
+          MOV.L    EXP_32,R1
+sftl_loop:
+          SHLL     R0
+          BF/S     sftl_loop
+          ADD      #-1,R1
+          ROTCR    R0
+          TST      #128,R0
+          BT       return_value
+          MOV.L    LRS,R2
+          TST      R2,R0
+          BT       return_value
+          MOV.L    MAN_1,R2
+          ADDC     R2,R0
+          BF       return_value
+          ROTCR    R0
+          ADD      #1,R1
+return_value:
+end_round:
+          SHLL     R0
+          SHLR8    R0
+          SHLL16   R1
+          SHLL8    R1
+          OR       R1,R0
+          SHLR     R3
+          ROTCR    R0
+          MOV.L    @R15+,R3
+          MOV.L    @R15+,R2
+          RTS
+          MOV.L    @R15+,R1
+return_zero:
+          RTS
+          NOP
+EXP_32:
+          .DATA.L  H'0000009F
+LRS:
+          .DATA.L  H'0000017F
+MAN_1:
+          .DATA.L  H'00000100
+          .END

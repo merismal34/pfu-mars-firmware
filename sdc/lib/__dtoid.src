@@ -1,0 +1,114 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __dtoid
+__dtoid:
+          MOV.L    @(4,R15),R1
+          MOV.L    @(8,R15),R2
+          MOV.L    IEEE_INF,R0
+          MOV      R1,R4
+          MOV.L    MMASK,R5
+          MOV      R1,R3
+          SHLR16   R3
+          SHLR2    R3
+          SHLR2    R3
+          AND      R0,R3
+          AND      R5,R1
+          CMP/EQ   R0,R3
+          BT       exception1
+          TST      R3,R3
+          BT       exception2
+exception_return:
+          MOV.L    BIAS,R0
+          SUB      R0,R3
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          SHLL     R2
+          ROTCL    R1
+          MOV.L    MSB,R0
+          OR       R0,R1
+return_value:
+          EXTU.W   R3,R3
+          SHLL     R3
+          SHLL     R4
+          ROTCR    R3
+          MOV.L    @R15,R0
+          MOV.L    R3,@R0
+          MOV.L    R1,@(4,R0)
+          RTS
+          MOV.L    R2,@(8,R0)
+exception1:
+          TST      R1,R1
+          BF       return_NaN
+          TST      R2,R2
+          BF       return_NaN
+          BRA      return_inf
+          NOP
+exception2:
+          TST      R1,R1
+          BF       normalize
+          TST      R2,R2
+          BT       return_zero
+normalize:
+          MOV.L    NORMAL,R0
+          SHLL     R2
+          ROTCL    R1
+          CMP/GE   R0,R1
+          BT       end_norm
+norm_loop:
+          ADD      #-1,R3
+          SHLL     R2
+          ROTCL    R1
+          CMP/GE   R0,R1
+          BF       norm_loop
+end_norm:
+          BRA      exception_return
+          NOP
+return_zero:
+          MOV.L    IN_ZERO,R3
+          MOV      #0,R1
+          BRA      return_value
+          MOV      #0,R2
+return_inf:
+          MOV.L    IN_INF,R3
+          MOV      #0,R1
+          BRA      return_value
+          MOV      #0,R2
+return_NaN:
+          MOV.L    IN_INF,R3
+          MOV      #0,R4
+          MOV      #-1,R1
+          BRA      return_value
+          MOV      #-1,R2
+          .DATA.W  H'0009   ; nop
+IEEE_INF:
+          .DATA.L  H'000007FF
+IN_INF:
+          .DATA.L  H'00007FFF
+IN_ZERO:
+          .DATA.L  H'FFFF8001
+MMASK:
+          .DATA.L  H'000FFFFF
+MSB:
+          .DATA.L  H'80000000
+NORMAL:
+          .DATA.L  H'00100000
+BIAS:
+          .DATA.L  H'000003FF
+          .END

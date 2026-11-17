@@ -1,0 +1,34 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __slow_mvn
+__slow_mvn:
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          MOV.L    R4,@-R15
+          CMP/EQ   #0,R0
+          BT       SMVN_END
+          MOV      R2,R4
+          ADD      R0,R4
+SMVN_B:
+          MOV.B    @R2+,R0
+          MOV.B    R0,@R1
+          CMP/HI   R2,R4
+          BF       SMVN_END
+          MOV.B    @R2+,R0
+          MOV.B    R0,@(1,R1)
+          CMP/HI   R2,R4
+          BF       SMVN_END
+          MOV.B    @R2+,R0
+          MOV.B    R0,@(2,R1)
+          CMP/HI   R2,R4
+          BF       SMVN_END
+          MOV.B    @R2+,R0
+          MOV.B    R0,@(3,R1)
+          CMP/HI   R2,R4
+          ADD      #4,R1
+          BT       SMVN_B
+SMVN_END:
+          MOV.L    @R15+,R4
+          MOV.L    @R15+,R3
+          RTS
+          MOV.L    @R15+,R2
+          .END

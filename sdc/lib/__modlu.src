@@ -1,0 +1,99 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __modlu
+          .IMPORT  __errno
+__modlu:
+          TST      R0,R0
+          BT       modlu_zero
+          MOV.L    R3,@-R15
+          MOV      #0,R3
+          MOV.L    R4,@-R15
+          MOV      R0,R4
+          DIV0U
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          ROTCL    R1
+          DIV1     R4,R3
+          BF       modlu_L
+          MOV      R3,R0
+          MOV.L    @R15+,R4
+          RTS
+          MOV.L    @R15+,R3
+modlu_L:
+          ADD      R3,R0
+          MOV.L    @R15+,R4
+          RTS
+          MOV.L    @R15+,R3
+modlu_zero:
+          MOV.L    R2,@-R15
+          MOV.L    A_errno,R1
+          MOV.L    n_zerono,R2
+          MOV      #0,R0
+          MOV.L    R2,@R1
+          RTS
+          MOV.L    @R15+,R2
+          .DATA.W  H'0009   ; nop
+A_errno:
+          .DATA.L  __errno
+n_zerono:
+          .DATA.L  H'0000044E
+          .END

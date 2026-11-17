@@ -1,0 +1,297 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __muld
+exception1:
+          TST      R4,R4
+          BF       return_NaN
+          TST      R5,R5
+          BF       return_NaN
+          CMP/EQ   R3,R9
+          BT       parm2_NaN_check
+          TST      R9,R9
+          BF       return_inf
+          TST      R6,R6
+          BF       return_inf
+          TST      R7,R7
+          BF       return_inf
+          BRA      return_NaN
+          NOP
+parm2_NaN_check:
+          TST      R6,R6
+          BF       return_NaN
+          TST      R7,R7
+          BF       return_NaN
+          BRA      return_inf
+          NOP
+exception2:
+          TST      R6,R6
+          BF       return_NaN
+          TST      R7,R7
+          BF       return_NaN
+          TST      R8,R8
+          BF       return_inf
+          TST      R4,R4
+          BF       return_inf
+          TST      R5,R5
+          BF       return_inf
+          BRA      return_NaN
+          NOP
+exception3:
+          TST      R4,R4
+          BF       ex3
+          TST      R5,R5
+          BF       ex3
+          BRA      return_zero
+          NOP
+ex3:
+          MOV.L    MSB,R0
+          SHLL     R5
+          ROTCL    R4
+          CMP/GE   R0,R4
+          BT       end_p1_norm
+p1_norm_loop:
+          SHLL     R5
+          ROTCL    R4
+          CMP/GE   R0,R4
+          BF/S     p1_norm_loop
+          ADD      #-1,R8
+end_p1_norm:
+          BRA      exception_return3
+          NOP
+exception4:
+          TST      R6,R6
+          BF       ex4
+          TST      R7,R7
+          BF       ex4
+          BRA      return_zero
+          NOP
+ex4:
+          MOV.L    MSB,R0
+          SHLL     R7
+          ROTCL    R6
+          CMP/GE   R0,R6
+          BT       end_p2_norm
+p2_norm_loop:
+          SHLL     R7
+          ROTCL    R6
+          CMP/GE   R0,R6
+          BF/S     p2_norm_loop
+          ADD      #-1,R9
+end_p2_norm:
+          BRA      exception_return4
+          NOP
+return_zero:
+          SHLL     R10
+          MOVT     R1
+          MOV      #0,R0
+          BRA      return
+          ROTR     R1
+return_inf:
+          MOV.L    EXP_INF,R8
+          MOV      #0,R1
+          BRA      return_value
+          MOV      #0,R0
+return_NaN:
+          MOV      #0,R10
+          MOV.L    EXP_INF,R8
+          MOV      #0,R1
+          BRA      return_value
+          MOV      #8,R0
+__muld:
+          MOV.L    R0,@-R15
+          MOV.L    R1,@-R15
+          MOV.L    R4,@-R15
+          MOV.L    R5,@-R15
+          MOV.L    R6,@-R15
+          MOV.L    R7,@-R15
+          MOV.L    @(28,R15),R4
+          MOV.L    @(32,R15),R5
+          MOV.L    @(36,R15),R6
+          MOV.L    @(40,R15),R7
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          MOV.L    R8,@-R15
+          MOV.L    R9,@-R15
+          MOV.L    R10,@-R15
+          MOV.L    R11,@-R15
+          MOV.L    R12,@-R15
+          MOV.L    R13,@-R15
+          MOV.L    R14,@-R15
+          STS.L    MACL,@-R15
+          STS.L    MACH,@-R15
+          MOV.L    EXP_INF,R3
+          MOV.L    MMASK,R0
+          MOV      R4,R10
+          XOR      R6,R10
+          MOV      R4,R8
+          SHLR16   R8
+          SHLR2    R8
+          SHLR2    R8
+          AND      R3,R8
+          MOV      R6,R9
+          SHLR16   R9
+          SHLR2    R9
+          SHLR2    R9
+          AND      R3,R9
+          AND      R0,R4
+          AND      R0,R6
+          CMP/EQ   R3,R8
+          BT       exception1
+          CMP/EQ   R3,R9
+          BT       exception2
+          TST      R8,R8
+          BT       exception3
+exception_return3:
+          TST      R9,R9
+          BT       exception4
+exception_return4:
+          MOV.L    BIAS,R2
+          ADD      R9,R8
+          SUB      R2,R8
+          CMP/GE   R3,R8
+          BT       return_inf
+          MOV      #-53,R3
+          CMP/GT   R8,R3
+          BT       return_zero
+          MOV.L    MSB,R0
+          OR       R0,R4
+          OR       R0,R6
+          DMULU.L  R5,R7
+          STS      MACH,R2
+          STS      MACL,R3
+          DMULU.L  R4,R6
+          STS      MACH,R9
+          STS      MACL,R1
+          DMULU.L  R4,R7
+          STS      MACH,R4
+          STS      MACL,R7
+          DMULU.L  R5,R6
+          STS      MACH,R6
+          STS      MACL,R0
+          CLRT
+          ADDC     R2,R7
+          ADDC     R4,R6
+          MOV      #0,R2
+          ADDC     R7,R0
+          ADDC     R6,R1
+          ADDC     R2,R9
+          TST      R3,R3
+          BT       mul_man1
+          OR       #1,R0
+mul_man1:
+          XTRCT    R0,R3
+          XTRCT    R1,R0
+          XTRCT    R9,R1
+          SHLR     R1
+          ROTCR    R0
+          ROTCR    R3
+          MOV.L    CARRY_CHECK,R5
+          TST      R1,R5
+          BT       end_normalize
+          SHLR     R1
+          ROTCR    R0
+          ROTCR    R3
+          ADD      #1,R8
+          MOV.L    EXP_INF,R4
+          CMP/EQ   R4,R8
+          BF       end_normalize
+          BRA      return_inf
+          NOP
+end_normalize:
+          TST      R3,R3
+          BT       end_sticky
+          OR       #1,R0
+end_sticky:
+          CMP/PL   R8
+          BT       end_denormal
+          NEG      R8,R8
+          ADD      #1,R8
+denormalize_loop:
+          SHLR     R1
+          ROTCR    R0
+          MOVT     R3
+          DT       R8
+          BF/S     denormalize_loop
+          OR       R3,R0
+round_denormal:
+          TST      #4,R0
+          BT       end_round_d
+          TST      #11,R0
+          BT       end_round_d
+          MOV.L    DEN_CARRY,R5
+          MOV      #8,R4
+          ADDC     R4,R0
+          ADDC     R2,R1
+          CMP/GT   R1,R5
+          BT       end_round_d
+          ADD      #1,R8
+end_round_d:
+          BRA      return_value
+          NOP
+end_denormal:
+          TST      #4,R0
+          BT       return_value
+          TST      #11,R0
+          BT       return_value
+          MOV      #8,R4
+          ADDC     R4,R0
+          ADDC     R2,R1
+          CMP/GT   R1,R5
+          BT       return_value
+round_carry:
+          SHLR     R1
+          ROTCR    R0
+          ADD      #1,R8
+return_value:
+end_round:
+          SHLR     R1
+          ROTCR    R0
+          SHLR     R1
+          ROTCR    R0
+          SHLR     R1
+          ROTCR    R0
+          MOV.L    MMASK,R2
+          AND      R2,R1
+          SHLL16   R8
+          SHLL2    R8
+          SHLL2    R8
+          OR       R8,R1
+          SHLL     R1
+          SHLL     R10
+          ROTCR    R1
+return:
+          LDS.L    @R15+,MACH
+          LDS.L    @R15+,MACL
+          MOV.L    @R15+,R14
+          MOV.L    @R15+,R13
+          MOV.L    @R15+,R12
+          MOV.L    @R15+,R11
+          MOV.L    @R15+,R10
+          MOV.L    @R15+,R9
+          MOV.L    @R15+,R8
+          MOV.L    @R15+,R3
+          MOV.L    @R15+,R2
+          MOV.L    @(24,R15),R6
+          MOV.L    R1,@R6
+          MOV.L    R0,@(4,R6)
+          MOV.L    @R15+,R7
+          MOV.L    @R15+,R6
+          MOV.L    @R15+,R5
+          MOV.L    @R15+,R4
+          MOV.L    @R15+,R1
+          MOV.L    @R15+,R0
+          RTS
+          ADD      #20,R15
+          .DATA.W  H'0009   ; nop
+EXP_INF:
+          .DATA.L  H'000007FF
+MMASK:
+          .DATA.L  H'000FFFFF
+MSB:
+          .DATA.L  H'00100000
+CARRY_CHECK:
+          .DATA.L  H'01000000
+BIAS:
+          .DATA.L  H'000003FF
+DEN_CARRY:
+          .DATA.L  H'00800000
+          .END

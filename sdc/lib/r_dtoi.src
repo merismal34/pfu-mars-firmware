@@ -1,0 +1,85 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __dtoi
+          .EXPORT  __dtou
+__dtoi:
+__dtou:
+          MOV.L    R1,@-R15
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          MOV.L    R4,@-R15
+          MOV.L    R5,@-R15
+          MOV.L    @(20,R15),R0
+          MOV.L    @(24,R15),R1
+          MOV.L    EXP_INF,R4
+          MOV.L    MMASK,R5
+          MOV      R0,R3
+          MOV      R0,R2
+          SHLR16   R2
+          SHLR2    R2
+          SHLR2    R2
+          AND      R4,R2
+          AND      R5,R0
+          MOV.L    BIAS,R4
+          SUB      R4,R2
+          CMP/PZ   R2
+          BF       return_zero
+          MOV      #83,R4
+          CMP/GT   R4,R2
+          BT       return_zero
+          MOV.L    MSB,R4
+          OR       R4,R0
+          ADD      #-20,R2
+          CMP/PZ   R2
+          BF       shift_r
+          MOV      #32,R4
+          CMP/GE   R4,R2
+          BT       shift_low
+          ADD      #1,R2
+loop_sftl:
+          DT       R2
+          BT       end_shift
+          SHLL     R1
+          BRA      loop_sftl
+          ROTCL    R0
+shift_low:
+          MOV      R1,R0
+          ADD      #-32,R2
+          TST      R2,R2
+          BT       end_shift
+shift_low1:
+          DT       R2
+          BF/S     shift_low1
+          SHLL     R0
+          BRA      end_shift
+          NOP
+shift_r:
+          NEG      R2,R2
+shift_r1:
+          DT       R2
+          BF/S     shift_r1
+          SHLR     R0
+end_shift:
+          SHLL     R3
+          BF       end_nagate
+          NEG      R0,R0
+end_nagate:
+return:
+          MOV.L    @R15+,R5
+          MOV.L    @R15+,R4
+          MOV.L    @R15+,R3
+          MOV.L    @R15+,R2
+          MOV.L    @R15+,R1
+          RTS
+          ADD      #8,R15
+return_zero:
+          BRA      end_nagate
+          MOV      #0,R0
+EXP_INF:
+          .DATA.L  H'000007FF
+MMASK:
+          .DATA.L  H'000FFFFF
+MSB:
+          .DATA.L  H'00100000
+BIAS:
+          .DATA.L  H'000003FF
+          .END

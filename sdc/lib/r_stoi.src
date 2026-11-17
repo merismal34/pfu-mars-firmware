@@ -1,0 +1,57 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __stoi
+          .EXPORT  __stou
+__stou:
+__stoi:
+          MOV.L    R1,@-R15
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          MOV.L    EXP_INF,R3
+          MOV      R0,R2
+          SHLL     R0
+          MOV      R0,R1
+          SHLR16   R1
+          SHLR8    R1
+          AND      R3,R1
+          SHLL8    R0
+          ADD      #-127,R1
+          CMP/PZ   R1
+          BF       return_zero
+          MOV      #54,R3
+          CMP/GT   R3,R1
+          BT       return_zero
+          OR       #1,R0
+          ROTR     R0
+          ADD      #-31,R1
+          TST      R1,R1
+          BT       end_shift
+          CMP/PZ   R1
+          BF       shift_r
+loop_sftl:
+          DT       R1
+          BF/S     loop_sftl
+          SHLL     R0
+          BRA      end_shift
+          NOP
+shift_r:
+          NEG      R1,R1
+loop_sftr:
+          DT       R1
+          BF/S     loop_sftr
+          SHLR     R0
+end_shift:
+          SHLL     R2
+          BF       end_nagate
+          NEG      R0,R0
+end_nagate:
+return:
+          MOV.L    @R15+,R3
+          MOV.L    @R15+,R2
+          RTS
+          MOV.L    @R15+,R1
+return_zero:
+          BRA      end_nagate
+          MOV      #0,R0
+EXP_INF:
+          .DATA.L  H'000000FF
+          .END

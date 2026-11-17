@@ -1,0 +1,98 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __ltd
+__ltd:
+          MOV.L    R4,@-R15
+          MOV.L    R5,@-R15
+          MOV.L    R6,@-R15
+          MOV.L    R7,@-R15
+          MOV.L    @(24,R15),R4
+          MOV.L    @(28,R15),R5
+          MOV.L    @(16,R15),R6
+          MOV.L    @(20,R15),R7
+          MOV.L    R8,@-R15
+          MOV.L    R9,@-R15
+          MOV.L    R10,@-R15
+          MOV.L    R11,@-R15
+          MOV.L    EXP_INF,R0
+          MOV      R4,R10
+          MOV      R6,R11
+          MOV      R4,R8
+          AND      R0,R8
+          MOV      R6,R9
+          AND      R0,R9
+          MOV.L    MMASK,R0
+          AND      R0,R4
+          AND      R0,R6
+          MOV.L    EXP_INF,R0
+          CMP/EQ   R0,R8
+          BT       exception1
+exception_return1:
+          CMP/EQ   R0,R9
+          BT       exception2
+exception_return2:
+          TST      R8,R8
+          BT       exception3
+exception_return3:
+          DIV0S    R10,R11
+          BT       sign_def
+          CMP/PZ   R10
+          BF       minus
+          CLRT
+          SUBC     R7,R5
+          SUBC     R11,R10
+          BRA      return
+          MOVT     R0
+minus:
+          SUBC     R5,R7
+          SUBC     R10,R11
+          BRA      return
+          MOVT     R0
+sign_def:
+          CMP/PZ   R11
+          MOVT     R0
+return:
+          MOV.L    @R15+,R11
+          MOV.L    @R15+,R10
+          MOV.L    @R15+,R9
+          MOV.L    @R15+,R8
+          MOV.L    @R15+,R7
+          MOV.L    @R15+,R6
+          MOV.L    @R15+,R5
+          MOV.L    @R15+,R4
+          RTS
+          ADD      #16,R15
+exception1:
+          TST      R4,R4
+          BF       false
+          TST      R5,R5
+          BF       false
+          BRA      exception_return1
+          NOP
+exception2:
+          TST      R6,R6
+          BF       false
+          TST      R7,R7
+          BF       false
+          BRA      exception_return2
+          NOP
+exception3:
+          TST      R9,R9
+          BF       exception_return3
+          TST      R4,R4
+          BF       exception_return3
+          TST      R5,R5
+          BF       exception_return3
+          TST      R6,R6
+          BF       exception_return3
+          TST      R7,R7
+          BF       exception_return3
+          BRA      return
+          MOV      #0,R0
+false:
+          BRA      return
+          MOV      #0,R0
+EXP_INF:
+          .DATA.L  H'7FF00000
+MMASK:
+          .DATA.L  H'000FFFFF
+          .END

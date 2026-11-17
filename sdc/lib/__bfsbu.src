@@ -1,0 +1,62 @@
+; __bfsbu: bitfield store, byte
+
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __bfsbu
+__bfsbu:
+          MOV.L    R1,@-R15
+          MOV.L    R3,@-R15
+          SWAP.B   R1,R3
+          EXTU.B   R1,R1
+          MOV.L    R4,@-R15
+          EXTU.B   R3,R3
+          MOV.L    R5,@-R15
+          MOV      R1,R4
+          MOV.L    R6,@-R15
+          MOV      #0,R5
+          MOV      #-1,R6
+L0016:
+          SHLL     R5
+          SHLL     R6
+          ADD      #-1,R4
+          ADD      #1,R5
+          CMP/PL   R4
+          BF       L002E
+          SHLL     R5
+          SHLL     R6
+          ADD      #-1,R4
+          ADD      #1,R5
+          CMP/PL   R4
+          BT       L0016
+L002E:
+          AND      R5,R0
+          MOV      #8,R4
+          SUB      R1,R4
+          SUB      R3,R4
+          MOV      R0,R5
+          TST      R4,R4
+          BT       L0054
+L003C:
+          SHLL     R6
+          SHLL     R5
+          ADD      #-1,R4
+          ADD      #1,R6
+          CMP/PL   R4
+          BF       L0054
+          SHLL     R6
+          SHLL     R5
+          ADD      #-1,R4
+          ADD      #1,R6
+          CMP/PL   R4
+          BT       L003C
+L0054:
+          MOV.B    @R2,R4
+          AND      R4,R6
+          OR       R6,R5
+          MOV.B    R5,@R2
+          MOV.L    @R15+,R6
+          MOV.L    @R15+,R5
+          MOV.L    @R15+,R4
+          MOV.L    @R15+,R3
+          RTS
+          MOV.L    @R15+,R1
+          .END

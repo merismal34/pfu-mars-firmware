@@ -1,0 +1,147 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __idtod
+__idtod:
+          MOV.L    @(4,R15),R2
+          EXTS.W   R2,R1
+          MOV.L    @(8,R15),R3
+          MOV.L    @(12,R15),R4
+          MOV.L    IN_INF,R0
+          CMP/GE   R0,R1
+          BT       exception1
+          MOV.L    BIAS,R0
+          ADD      R0,R1
+          MOV.L    IEEE_INF,R0
+          CMP/GE   R0,R1
+          BT       return_inf
+          MOV      #-52,R0
+          CMP/GT   R1,R0
+          BT       return_zero
+          CMP/PL   R1
+          BT       end_denormal
+          SHLR     R3
+          ROTCR    R4
+          MOVT     R0
+          OR       R0,R4
+denormalize_loop:
+          CMP/PZ   R1
+          BT       round_denormal
+          SHLR     R3
+          ROTCR    R4
+          MOVT     R0
+          OR       R0,R4
+          BRA      denormalize_loop
+          ADD      #1,R1
+round_denormal:
+          MOV.L    Gbit,R0
+          TST      R0,R4
+          BT       return_value
+          MOV.L    LRS,R0
+          TST      R0,R4
+          BT       return_value
+          MOV.L    MAN_1,R0
+          ADDC     R0,R4
+          MOV      #0,R0
+          ADDC     R0,R3
+          CMP/PZ   R3
+          BT       return_value
+          ADD      #1,R1
+end_round_d:
+          BRA      return_value
+          NOP
+end_denormal:
+          MOV.L    Gbit,R0
+          TST      R0,R4
+          BT       return_value
+          MOV.L    LRS,R0
+          TST      R0,R4
+          BT       return_value
+          MOV.L    MAN_1,R0
+          ADDC     R0,R4
+          MOV      #0,R0
+          ADDC     R0,R3
+          BF       return_value
+          ROTCR    R3
+          ROTCR    R4
+          ADD      #1,R1
+return_value:
+end_round:
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          SHLR     R3
+          ROTCR    R4
+          MOV.L    MMASK,R0
+          AND      R0,R3
+          SHLL16   R1
+          SHLL2    R1
+          SHLL2    R1
+          OR       R1,R3
+          SHLL     R3
+          SHLL     R2
+          ROTCR    R3
+          MOV.L    @R15,R0
+          MOV.L    R3,@R0
+          RTS
+          MOV.L    R4,@(4,R0)
+exception1:
+          TST      R3,R3
+          BF       return_NaN
+          TST      R4,R4
+          BF       return_NaN
+          BRA      return_inf
+          NOP
+return_zero:
+          MOV      #0,R1
+          MOV      #0,R3
+          BRA      return_value
+          MOV      #0,R4
+return_inf:
+          MOV.L    IEEE_INF,R1
+          MOV      #0,R3
+          BRA      return_value
+          MOV      #0,R4
+return_NaN:
+          MOV.L    IEEE_INF,R1
+          MOV      #0,R2
+          MOV      #0,R3
+          MOV      #1,R4
+          SHLL8    R4
+          SHLL2    R4
+          BRA      return_value
+          SHLL     R4
+          .DATA.W  H'0009   ; nop
+IEEE_INF:
+          .DATA.L  H'000007FF
+IN_INF:
+          .DATA.L  H'00007FFF
+IN_ZERO:
+          .DATA.W  H'FFFF
+          .DATA.W  H'8001   ; mov.b r0,@(1,r0)
+MAN_1:
+          .DATA.L  H'00000800
+BIAS:
+          .DATA.L  H'000003FF
+Gbit:
+          .DATA.L  H'00000400
+LRS:
+          .DATA.L  H'00000BFF
+MMASK:
+          .DATA.L  H'000FFFFF
+          .END

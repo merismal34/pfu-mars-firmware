@@ -1,0 +1,50 @@
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  __itod
+__itod:
+          MOV.L    R1,@-R15
+          MOV.L    R2,@-R15
+          MOV.L    R3,@-R15
+          TST      R0,R0
+          BT       return_zero
+          MOV      #0,R3
+          CMP/PZ   R0
+          BT       end_negate
+          MOV      #1,R3
+          NEG      R0,R0
+end_negate:
+          MOV.L    EXP_32,R1
+sftl_loop:
+          SHLL     R0
+          BF/S     sftl_loop
+          ADD      #-1,R1
+          MOV      R0,R2
+          SHLL16   R2
+          SHLL2    R2
+          SHLL2    R2
+          SHLR8    R0
+          SHLR2    R0
+          SHLR2    R0
+          SHLL16   R1
+          SHLL2    R1
+          SHLL2    R1
+          OR       R1,R0
+          SHLL     R0
+          SHLR     R3
+          ROTCR    R0
+return:
+          MOV.L    @(12,R15),R1
+          MOV.L    R0,@R1
+          MOV.L    R2,@(4,R1)
+          MOV.L    @R15+,R3
+          MOV.L    @R15+,R2
+          MOV.L    @R15+,R1
+          RTS
+          ADD      #4,R15
+return_zero:
+          MOV      #0,R2
+          BRA      return
+          MOV      #0,R0
+          .DATA.W  H'0009   ; nop
+EXP_32:
+          .DATA.L  H'0000041F
+          .END

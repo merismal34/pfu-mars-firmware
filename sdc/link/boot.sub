@@ -1,0 +1,69 @@
+; Boot link: program 1 (runs in place) and program 2 (fw_update), stored after it and linked
+; at its run address in RAM with the ROM subcommand.
+
+; Symbols defined by address: the externals no input of this link defines.
+
+; ---- names inside objects of this link's RAM sections: members, column views and aliases of a
+; variable another module defines (declared on their own in the headers)
+DEFINE _fw_update_record_in_use(0FFFFE024)
+DEFINE _fw_update_block_table_len(0FFFFE542)
+DEFINE _fw_update_usb_max_packet_ep0_low(0FFFFEB21)
+DEFINE _fw_update_usb_max_packet_epa_low(0FFFFEB23)
+DEFINE _fw_update_usb_max_packet_epb_low(0FFFFEB25)
+DEFINE _fw_update_usb_status_dma_low(0FFFFEB2F)
+
+; ---- ROM outside this link's sections: external flash (information block, settings sectors), device
+; addresses, the boot block
+DEFINE _boot_info_block(087A000)
+
+; ---- functions by address: the other link's, or a second name of one of this link's
+DEFINE _start_entry(010400)
+
+; inputs, in link order
+INPUT boot_entry.obj
+INPUT boot_vectors.obj
+INPUT boot_header.obj
+INPUT boot_start.obj
+INPUT boot_main.obj
+INPUT boot_isr.obj
+INPUT fw_update_vectors.obj
+INPUT fw_update_start.obj
+INPUT fw_update_usb_ep0_run.obj
+INPUT fw_update_usb_ep0_stages.obj
+INPUT fw_update_usb_ep0_status.obj
+INPUT fw_update_record.obj
+INPUT fw_update_flash.obj
+INPUT fw_update_isr_exception.obj
+INPUT fw_update_scsi_ctrl.obj
+INPUT fw_update_isr_irq3.obj
+INPUT fw_update_isr_cmi1.obj
+INPUT fw_update_main.obj
+INPUT fw_update_usb_requests.obj
+INPUT fw_update_scsi.obj
+INPUT fw_update_usb_device.obj
+INPUT fw_update_usb_ack.obj
+INPUT fw_update_usb_command.obj
+INPUT fw_update_usb_states.obj
+INPUT fw_update_main_data.obj
+INPUT fw_update_devices.obj
+INPUT fw_update_usb_command_data.obj
+INPUT fw_update_usb_states_data.obj
+INPUT fw_update_globals.obj
+
+; program 2: RVECT2.. get the layout and symbols of the run address, the bytes stay in VECT2..
+ROM (VECT2,RVECT2),(P2,RP2),(C2,RC2),(D2,RD2)
+
+; sections: one START per block
+START VECT(00)
+START HEADER(0400)
+START P,D(0430)
+START VECT2,P2,C2,D2(01000)
+START RVECT2,RP2,RC2,RD2(0400000)
+START B2(040F000)
+START BI(0FFFFE000)
+
+FORM A
+ENTRY _boot_reset
+OUTPUT boot.abs
+PRINT boot.map
+EXIT
