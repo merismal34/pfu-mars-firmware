@@ -1,0 +1,38 @@
+; What the application uses but does not define: the boot program's functions it calls (the
+; two programs are linked separately), the RAM block shared with the SDC (chip A's memory)
+; and the areas of chip B's memory it uses. The boot program's addresses are numbers here and must
+; follow its link (flash_section_rom / flash_section_start: the start of sections PFLASH /
+; PFLASHR).
+          .CPU        2000A:24
+          .SECTION    P,CODE,ALIGN=2
+          .EXPORT     _boot_delay
+_boot_delay: .EQU H'000860          ; address in the other link
+          .EXPORT     _boot_reset
+_boot_reset: .EQU H'000400          ; address in the other link
+          .EXPORT     _flash_write_unlock_cycles
+_flash_write_unlock_cycles: .EQU H'FFF7FE          ; address in the other link
+          .EXPORT     _flash_erase_sector
+_flash_erase_sector: .EQU H'FFF688          ; address in the other link
+          .EXPORT     _flash_program_word
+_flash_program_word: .EQU H'FFF764          ; address in the other link
+          .EXPORT     _flash_run_download
+_flash_run_download: .EQU H'FFF200          ; address in the other link
+          .EXPORT     _flash_section_rom
+_flash_section_rom: .EQU H'00F000          ; address in the other link
+          .EXPORT     _flash_section_start
+_flash_section_start: .EQU H'FFF200          ; address in the other link
+          .EXPORT     _main_chip_b_byte_1
+_main_chip_b_byte_1: .EQU H'400101
+          .EXPORT     _main_chip_b_byte_2
+_main_chip_b_byte_2: .EQU H'400102
+          .EXPORT     _console_chip_b_byte_1
+_console_chip_b_byte_1: .EQU H'400103
+          .EXPORT     _cmd_log_dump_count
+_cmd_log_dump_count: .EQU H'4001F8
+          .EXPORT     _cmd_log_dump
+_cmd_log_dump: .EQU H'400210
+          .EXPORT     _cmd_overlap_pattern_block
+_cmd_overlap_pattern_block: .EQU H'400478
+          .EXPORT     _mailbox
+_mailbox: .EQU H'200100
+          .END

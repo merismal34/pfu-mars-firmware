@@ -1,0 +1,12 @@
+; What the boot program uses but does not define: the application's entry, the RAM block
+; it shares with the SDC (chip A's memory, on the external bus) and the download buffer in
+; chip B's memory.
+          .CPU        2000A:24
+          .SECTION    PBOOT,CODE,ALIGN=2
+          .EXPORT     _mailbox
+_mailbox: .EQU H'200100
+          .EXPORT     _main
+_main: .EQU H'010000          ; address in the other link
+          .EXPORT     _flash_piece_buf
+_flash_piece_buf: .EQU H'400100
+          .END

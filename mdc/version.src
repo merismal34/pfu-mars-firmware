@@ -1,0 +1,6 @@
+; The version string.
+          .CPU        2000A:24
+          .SECTION    VER,DATA,ALIGN=2
+          .SDATA      "00014559A    "
+          .DATA.B     0,0,0
+          .END

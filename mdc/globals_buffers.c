@@ -1,0 +1,36 @@
+#include "mdc.h"
+
+union imprinter_rx_buf imprinter_packet;
+unsigned char job_length_history_reset;
+union job_wake_flags_bits job_wake_flags;
+union cmd_standby_flags_bits cmd_standby_flags;
+struct ramp_feed_record ramp_feed_speed_records[3];
+struct byte_pair ramp_feed_periods[9];
+unsigned char motor_current_tables[5][8][8];
+unsigned char ramp_fb_motor_high[592];
+unsigned char ramp_fb_motor_low[592];
+unsigned char ramp_fb_motor_half_high[592];
+unsigned char ramp_fb_motor_half_low[592];
+union sensor_flags_bits sensor_flags;
+union pick_sensor_flags_bits pick_sensor_flags;
+unsigned char sensor_home_count;
+unsigned char sensor_document_cover_count;
+unsigned char sensor_cover_count;
+unsigned char sensor_empty_count;
+unsigned char sensor_top_count;
+unsigned char sensor_backing_count;
+unsigned char sensor_pick_count;
+unsigned char sensor_pick_arm_count;
+unsigned char sensor_top_count_limit;
+unsigned char sensor_top_threshold;
+unsigned char globals_filler_15[6];
+unsigned char pick_sensor_count;
+unsigned char globals_filler_16[3];
+union byte_view bw_motor_arm_phase;
+unsigned char bw_motor_backing_phase;
+unsigned char console_answer[16];
+unsigned char console_command[16];
+unsigned char log_buf[256];
+union imprinter_flags_5_bits imprinter_flags_5;
+unsigned char imprinter_tx_header[8];
+union imprinter_tx_word imprinter_tx_data;

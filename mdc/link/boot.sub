@@ -1,0 +1,14 @@
+; Boot link: vectors, the boot program, and the flash routines that are stored in ROM (PFLASH)
+; and run in RAM (PFLASHR). boot.c is compiled with its code in section PBOOT, flash.c in PFLASH,
+; flash_chip.c in PF800.
+input vectors.obj
+input boot.obj
+input flash.obj
+input flash_chip.obj
+input extern_boot.obj
+rom PFLASH=PFLASHR
+start VECT/0,PBOOT/400,PFLASH/0F000,PF800/0F800,PFLASHR/0FFF200,B/0FFE51A
+form stype
+output boot.mot
+list boot.map
+nologo

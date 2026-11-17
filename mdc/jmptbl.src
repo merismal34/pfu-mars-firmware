@@ -1,0 +1,114 @@
+; The jump table: 92 `jmp @handler`, one per vector; copied to RAM 0xFFDC00.
+          .CPU        2000A:24
+          .IMPORT     _boot_reset
+          .IMPORT     _isr_tgi2a
+          .IMPORT     _isr_tgi3a
+          .IMPORT     _feed_handle_event
+          .IMPORT     _isr_tgi4a
+          .IMPORT     _isr_tgi1a
+          .IMPORT     _isr_nmi
+          .IMPORT     _isr_irq4
+          .IMPORT     _isr_unused
+          .IMPORT     _isr_adi
+          .IMPORT     _isr_irq0
+          .IMPORT     _isr_irq7
+          .IMPORT     _isr_tgi5a
+          .IMPORT     _isr_rxi0
+          .IMPORT     _isr_txi0
+          .IMPORT     _isr_eri0
+          .EXPORT     _hw_vector_jumps
+          .SECTION    JMPTBL,CODE,ALIGN=2
+_hw_vector_jumps:
+          JMP         @_boot_reset:24          ; 0
+          JMP         @_isr_unused:24          ; 1
+          JMP         @_isr_unused:24          ; 2
+          JMP         @_isr_unused:24          ; 3
+          JMP         @_isr_unused:24          ; 4
+          JMP         @_isr_unused:24          ; 5
+          JMP         @_isr_unused:24          ; 6
+          JMP         @_isr_nmi:24          ; 7
+          JMP         @_isr_unused:24          ; 8
+          JMP         @_isr_unused:24          ; 9
+          JMP         @_isr_unused:24          ; 10
+          JMP         @_isr_unused:24          ; 11
+          JMP         @_isr_unused:24          ; 12
+          JMP         @_isr_unused:24          ; 13
+          JMP         @_isr_unused:24          ; 14
+          JMP         @_isr_unused:24          ; 15
+          JMP         @_isr_irq0:24          ; 16
+          JMP         @_isr_unused:24          ; 17
+          JMP         @_isr_unused:24          ; 18
+          JMP         @_isr_unused:24          ; 19
+          JMP         @_isr_irq4:24          ; 20
+          JMP         @_isr_unused:24          ; 21
+          JMP         @_isr_unused:24          ; 22
+          JMP         @_isr_irq7:24          ; 23
+          JMP         @_isr_unused:24          ; 24
+          JMP         @_isr_unused:24          ; 25
+          JMP         @_isr_unused:24          ; 26
+          JMP         @_isr_unused:24          ; 27
+          JMP         @_isr_adi:24          ; 28
+          JMP         @_isr_unused:24          ; 29
+          JMP         @_isr_unused:24          ; 30
+          JMP         @_isr_unused:24          ; 31
+          JMP         @_feed_handle_event:24          ; 32
+          JMP         @_isr_unused:24          ; 33
+          JMP         @_isr_unused:24          ; 34
+          JMP         @_isr_unused:24          ; 35
+          JMP         @_isr_unused:24          ; 36
+          JMP         @_isr_unused:24          ; 37
+          JMP         @_isr_unused:24          ; 38
+          JMP         @_isr_unused:24          ; 39
+          JMP         @_isr_tgi1a:24          ; 40
+          JMP         @_isr_unused:24          ; 41
+          JMP         @_isr_unused:24          ; 42
+          JMP         @_isr_unused:24          ; 43
+          JMP         @_isr_tgi2a:24          ; 44
+          JMP         @_isr_unused:24          ; 45
+          JMP         @_isr_unused:24          ; 46
+          JMP         @_isr_unused:24          ; 47
+          JMP         @_isr_tgi3a:24          ; 48
+          JMP         @_isr_unused:24          ; 49
+          JMP         @_isr_unused:24          ; 50
+          JMP         @_isr_unused:24          ; 51
+          JMP         @_isr_unused:24          ; 52
+          JMP         @_isr_unused:24          ; 53
+          JMP         @_isr_unused:24          ; 54
+          JMP         @_isr_unused:24          ; 55
+          JMP         @_isr_tgi4a:24          ; 56
+          JMP         @_isr_unused:24          ; 57
+          JMP         @_isr_unused:24          ; 58
+          JMP         @_isr_unused:24          ; 59
+          JMP         @_isr_tgi5a:24          ; 60
+          JMP         @_isr_unused:24          ; 61
+          JMP         @_isr_unused:24          ; 62
+          JMP         @_isr_unused:24          ; 63
+          JMP         @_isr_unused:24          ; 64
+          JMP         @_isr_unused:24          ; 65
+          JMP         @_isr_unused:24          ; 66
+          JMP         @_isr_unused:24          ; 67
+          JMP         @_isr_unused:24          ; 68
+          JMP         @_isr_unused:24          ; 69
+          JMP         @_isr_unused:24          ; 70
+          JMP         @_isr_unused:24          ; 71
+          JMP         @_isr_unused:24          ; 72
+          JMP         @_isr_unused:24          ; 73
+          JMP         @_isr_unused:24          ; 74
+          JMP         @_isr_unused:24          ; 75
+          JMP         @_isr_unused:24          ; 76
+          JMP         @_isr_unused:24          ; 77
+          JMP         @_isr_unused:24          ; 78
+          JMP         @_isr_unused:24          ; 79
+          JMP         @_isr_eri0:24          ; 80
+          JMP         @_isr_rxi0:24          ; 81
+          JMP         @_isr_txi0:24          ; 82
+          JMP         @_isr_unused:24          ; 83
+          JMP         @_isr_unused:24          ; 84
+          JMP         @_isr_unused:24          ; 85
+          JMP         @_isr_unused:24          ; 86
+          JMP         @_isr_unused:24          ; 87
+          JMP         @_isr_unused:24          ; 88
+          JMP         @_isr_unused:24          ; 89
+          JMP         @_isr_unused:24          ; 90
+          JMP         @_isr_unused:24          ; 91
+          .END
