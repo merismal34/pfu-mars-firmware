@@ -1,0 +1,961 @@
+#include "fw.h"
+#pragma section H
+/* The JPEG tables (section CH): jpeg.c's quantisation and Huffman tables, used only by it. */
+const unsigned char jpeg_qtables_81[64] = {
+    0x20, 0x16, 0x18, 0x1c, 0x18, 0x14, 0x20, 0x1c, 0x1a, 0x1c, 0x24, 0x22, 0x20, 0x26, 0x30, 0x50,
+    0x34, 0x30, 0x2c, 0x2c, 0x30, 0x62, 0x46, 0x4a, 0x3a, 0x50, 0x74, 0x66, 0x7a, 0x78, 0x72, 0x66,
+    0x70, 0x6e, 0x80, 0x90, 0xb8, 0x9c, 0x80, 0x88, 0xae, 0x8a, 0x6e, 0x70, 0xa0, 0xda, 0xa2, 0xae,
+    0xbe, 0xc4, 0xce, 0xd0, 0xce, 0x7c, 0x9a, 0xe2, 0xf2, 0xe0, 0xc8, 0xf0, 0xb8, 0xca, 0xce, 0xc6
+};
+const unsigned char jpeg_chroma_qtables_81[704] = {
+    0x22, 0x24, 0x24, 0x30, 0x2a, 0x30, 0x5e, 0x34, 0x34, 0x5e, 0xc6, 0x84, 0x70, 0x84, 0xc6, 0xc6,
+    0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
+    0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
+    0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
+    0x18, 0x10, 0x12, 0x15, 0x12, 0x0f, 0x18, 0x15, 0x13, 0x15, 0x1b, 0x19, 0x18, 0x1c, 0x24, 0x3c,
+    0x27, 0x24, 0x21, 0x21, 0x24, 0x49, 0x34, 0x37, 0x2b, 0x3c, 0x57, 0x4c, 0x5b, 0x5a, 0x55, 0x4c,
+    0x54, 0x52, 0x60, 0x6c, 0x8a, 0x75, 0x60, 0x66, 0x82, 0x67, 0x52, 0x54, 0x78, 0xa3, 0x79, 0x82,
+    0x8e, 0x93, 0x9a, 0x9c, 0x9a, 0x5d, 0x73, 0xa9, 0xb5, 0xa8, 0x96, 0xb4, 0x8a, 0x97, 0x9a, 0x94,
+    0x19, 0x1b, 0x1b, 0x24, 0x1f, 0x24, 0x46, 0x27, 0x27, 0x46, 0x94, 0x63, 0x54, 0x63, 0x94, 0x94,
+    0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94,
+    0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94,
+    0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94, 0x94,
+    0x10, 0x0b, 0x0c, 0x0e, 0x0c, 0x0a, 0x10, 0x0e, 0x0d, 0x0e, 0x12, 0x11, 0x10, 0x13, 0x18, 0x28,
+    0x1a, 0x18, 0x16, 0x16, 0x18, 0x31, 0x23, 0x25, 0x1d, 0x28, 0x3a, 0x33, 0x3d, 0x3c, 0x39, 0x33,
+    0x38, 0x37, 0x40, 0x48, 0x5c, 0x4e, 0x40, 0x44, 0x57, 0x45, 0x37, 0x38, 0x50, 0x6d, 0x51, 0x57,
+    0x5f, 0x62, 0x67, 0x68, 0x67, 0x3e, 0x4d, 0x71, 0x79, 0x70, 0x64, 0x78, 0x5c, 0x65, 0x67, 0x63,
+    0x11, 0x12, 0x12, 0x18, 0x15, 0x18, 0x2f, 0x1a, 0x1a, 0x2f, 0x63, 0x42, 0x38, 0x42, 0x63, 0x63,
+    0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
+    0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
+    0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63, 0x63,
+    0x08, 0x05, 0x06, 0x07, 0x06, 0x05, 0x08, 0x07, 0x06, 0x07, 0x09, 0x08, 0x08, 0x09, 0x0c, 0x14,
+    0x0d, 0x0c, 0x0b, 0x0b, 0x0c, 0x18, 0x11, 0x12, 0x0e, 0x14, 0x1d, 0x19, 0x1e, 0x1e, 0x1c, 0x19,
+    0x1c, 0x1b, 0x20, 0x24, 0x2e, 0x27, 0x20, 0x22, 0x2b, 0x22, 0x1b, 0x1c, 0x28, 0x36, 0x28, 0x2b,
+    0x2f, 0x31, 0x33, 0x34, 0x33, 0x1f, 0x26, 0x38, 0x3c, 0x38, 0x32, 0x3c, 0x2e, 0x32, 0x33, 0x31,
+    0x08, 0x09, 0x09, 0x0c, 0x0a, 0x0c, 0x17, 0x0d, 0x0d, 0x17, 0x31, 0x21, 0x1c, 0x21, 0x31, 0x31,
+    0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31,
+    0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31,
+    0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31, 0x31,
+    0x04, 0x03, 0x03, 0x04, 0x03, 0x03, 0x04, 0x04, 0x03, 0x04, 0x05, 0x05, 0x04, 0x05, 0x07, 0x0c,
+    0x07, 0x07, 0x06, 0x06, 0x07, 0x0e, 0x0a, 0x0b, 0x08, 0x0c, 0x11, 0x0f, 0x12, 0x12, 0x11, 0x0f,
+    0x10, 0x10, 0x13, 0x15, 0x1b, 0x17, 0x13, 0x14, 0x1a, 0x14, 0x10, 0x10, 0x18, 0x20, 0x18, 0x1a,
+    0x1c, 0x1d, 0x1e, 0x1f, 0x1e, 0x12, 0x17, 0x21, 0x24, 0x21, 0x1e, 0x24, 0x1b, 0x1e, 0x1e, 0x1d,
+    0x05, 0x05, 0x05, 0x07, 0x06, 0x07, 0x0e, 0x07, 0x07, 0x0e, 0x1d, 0x13, 0x10, 0x13, 0x1d, 0x1d,
+    0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d,
+    0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d,
+    0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d, 0x1d,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x03, 0x03, 0x02, 0x04, 0x05, 0x05, 0x06, 0x06, 0x05, 0x05,
+    0x05, 0x05, 0x06, 0x07, 0x09, 0x07, 0x06, 0x06, 0x08, 0x06, 0x05, 0x05, 0x08, 0x0a, 0x08, 0x08,
+    0x09, 0x09, 0x0a, 0x0a, 0x0a, 0x06, 0x07, 0x0b, 0x0c, 0x0b, 0x0a, 0x0c, 0x09, 0x0a, 0x0a, 0x09,
+    0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x04, 0x02, 0x02, 0x04, 0x09, 0x06, 0x05, 0x06, 0x09, 0x09,
+    0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+    0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+    0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09
+};
+const unsigned char jpeg_qtable_finest[64] = {
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 3, 3, 2, 2, 3, 2, 2, 2, 3, 4, 3, 3,
+    3, 3, 4, 4, 4, 2, 3, 4, 4, 4, 4, 4, 3, 4, 4, 3
+};
+const unsigned char jpeg_chroma_qtable_finest[64] = {
+    2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 2, 2, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+    3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
+};
+const unsigned char jpeg_qtables_82[64] = {
+    0x51, 0x38, 0x3d, 0x47, 0x3d, 0x33, 0x51, 0x47, 0x42, 0x47, 0x5b, 0x56, 0x51, 0x60, 0x7a, 0xcc,
+    0x84, 0x7a, 0x70, 0x70, 0x7a, 0xf9, 0xb2, 0xbc, 0x93, 0xcc, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+};
+const unsigned char jpeg_chroma_qtables_82[832] = {
+    0x56, 0x5b, 0x5b, 0x7a, 0x6b, 0x7a, 0xef, 0x84, 0x84, 0xef, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x3c, 0x29, 0x2d, 0x35, 0x2d, 0x26, 0x3c, 0x35, 0x31, 0x35, 0x44, 0x40, 0x3c, 0x48, 0x5b, 0x98,
+    0x62, 0x5b, 0x53, 0x53, 0x5b, 0xba, 0x85, 0x8c, 0x6e, 0x98, 0xdc, 0xc1, 0xe7, 0xe4, 0xd8, 0xc1,
+    0xd4, 0xd1, 0xf3, 0xff, 0xff, 0xff, 0xf3, 0xff, 0xff, 0xff, 0xd1, 0xd4, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xeb, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x40, 0x44, 0x44, 0x5b, 0x4f, 0x5b, 0xb2, 0x62, 0x62, 0xb2, 0xff, 0xfa, 0xd4, 0xfa, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x2c, 0x1e, 0x21, 0x27, 0x21, 0x1c, 0x2c, 0x27, 0x24, 0x27, 0x32, 0x2f, 0x2c, 0x35, 0x43, 0x70,
+    0x48, 0x43, 0x3d, 0x3d, 0x43, 0x89, 0x62, 0x67, 0x51, 0x70, 0xa2, 0x8e, 0xaa, 0xa8, 0x9f, 0x8e,
+    0x9c, 0x9a, 0xb3, 0xc9, 0xff, 0xda, 0xb3, 0xbe, 0xf3, 0xc1, 0x9a, 0x9c, 0xe0, 0xff, 0xe2, 0xf3,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xad, 0xd7, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x2f, 0x32, 0x32, 0x43, 0x3a, 0x43, 0x83, 0x48, 0x48, 0x83, 0xff, 0xb8, 0x9c, 0xb8, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+    0x20, 0x16, 0x18, 0x1c, 0x18, 0x14, 0x20, 0x1c, 0x1a, 0x1c, 0x24, 0x22, 0x20, 0x26, 0x30, 0x50,
+    0x34, 0x30, 0x2c, 0x2c, 0x30, 0x62, 0x46, 0x4a, 0x3a, 0x50, 0x74, 0x66, 0x7a, 0x78, 0x72, 0x66,
+    0x70, 0x6e, 0x80, 0x90, 0xb8, 0x9c, 0x80, 0x88, 0xae, 0x8a, 0x6e, 0x70, 0xa0, 0xda, 0xa2, 0xae,
+    0xbe, 0xc4, 0xce, 0xd0, 0xce, 0x7c, 0x9a, 0xe2, 0xf2, 0xe0, 0xc8, 0xf0, 0xb8, 0xca, 0xce, 0xc6,
+    0x22, 0x24, 0x24, 0x30, 0x2a, 0x30, 0x5e, 0x34, 0x34, 0x5e, 0xc6, 0x84, 0x70, 0x84, 0xc6, 0xc6,
+    0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
+    0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
+    0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6, 0xc6,
+    0x10, 0x0b, 0x0c, 0x0e, 0x0c, 0x0a, 0x10, 0x0e, 0x0d, 0x0e, 0x13, 0x12, 0x10, 0x14, 0x19, 0x2a,
+    0x1b, 0x19, 0x17, 0x17, 0x19, 0x33, 0x25, 0x27, 0x1e, 0x2a, 0x3d, 0x36, 0x40, 0x3f, 0x3c, 0x36,
+    0x3b, 0x3a, 0x43, 0x4c, 0x61, 0x52, 0x43, 0x48, 0x5c, 0x49, 0x3a, 0x3b, 0x54, 0x73, 0x55, 0x5c,
+    0x64, 0x67, 0x6d, 0x6e, 0x6d, 0x41, 0x51, 0x77, 0x80, 0x76, 0x6a, 0x7f, 0x61, 0x6b, 0x6d, 0x68,
+    0x12, 0x13, 0x13, 0x19, 0x16, 0x19, 0x31, 0x1b, 0x1b, 0x31, 0x68, 0x45, 0x3b, 0x45, 0x68, 0x68,
+    0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68,
+    0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68,
+    0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68, 0x68,
+    0x06, 0x04, 0x04, 0x05, 0x04, 0x04, 0x06, 0x05, 0x05, 0x05, 0x07, 0x06, 0x06, 0x07, 0x09, 0x10,
+    0x0a, 0x09, 0x08, 0x08, 0x09, 0x13, 0x0e, 0x0e, 0x0b, 0x10, 0x17, 0x14, 0x18, 0x18, 0x16, 0x14,
+    0x16, 0x16, 0x19, 0x1c, 0x24, 0x1f, 0x19, 0x1b, 0x22, 0x1b, 0x16, 0x16, 0x20, 0x2b, 0x20, 0x22,
+    0x26, 0x27, 0x29, 0x29, 0x29, 0x18, 0x1e, 0x2d, 0x30, 0x2c, 0x28, 0x30, 0x24, 0x28, 0x29, 0x27,
+    0x06, 0x07, 0x07, 0x09, 0x08, 0x09, 0x12, 0x0a, 0x0a, 0x12, 0x27, 0x1a, 0x16, 0x1a, 0x27, 0x27,
+    0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27,
+    0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27,
+    0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27, 0x27,
+    0x04, 0x02, 0x03, 0x03, 0x03, 0x02, 0x04, 0x03, 0x03, 0x03, 0x04, 0x04, 0x04, 0x04, 0x06, 0x0a,
+    0x06, 0x06, 0x05, 0x05, 0x06, 0x0c, 0x09, 0x09, 0x07, 0x0a, 0x0f, 0x0d, 0x0f, 0x0f, 0x0e, 0x0d,
+    0x0e, 0x0e, 0x10, 0x12, 0x17, 0x14, 0x10, 0x11, 0x16, 0x11, 0x0e, 0x0e, 0x14, 0x1c, 0x15, 0x16,
+    0x18, 0x19, 0x1a, 0x1b, 0x1a, 0x10, 0x14, 0x1d, 0x1f, 0x1d, 0x1a, 0x1f, 0x17, 0x1a, 0x1a, 0x19,
+    0x04, 0x04, 0x04, 0x06, 0x05, 0x06, 0x0c, 0x06, 0x06, 0x0c, 0x19, 0x11, 0x0e, 0x11, 0x19, 0x19,
+    0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19,
+    0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19,
+    0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19, 0x19
+};
+const unsigned char jpeg_huffman_dc_luma_bits[16] = {0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0};
+const unsigned char jpeg_huffman_dc_luma_values[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x0a, 0x0b};
+const unsigned char jpeg_huffman_dc_chroma_bits[16] = {0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0};
+const unsigned char jpeg_huffman_dc_chroma_values[12] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x0a, 0x0b};
+const unsigned char jpeg_huffman_ac_luma_bits[16] = {0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d};
+const unsigned char jpeg_huffman_ac_luma_values[162] = {
+    1, 2, 3, 0, 4, 0x11, 5, 0x12, 0x21, 0x31, 0x41, 6, 0x13, 0x51, 0x61, 7,
+    0x22, 0x71, 0x14, 0x32, 0x81, 0x91, 0xa1, 8, 0x23, 0x42, 0xb1, 0xc1, 0x15, 0x52, 0xd1, 0xf0,
+    0x24, 0x33, 0x62, 0x72, 0x82, 9, 0x0a, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x25, 0x26, 0x27, 0x28,
+    0x29, 0x2a, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49,
+    0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69,
+    0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89,
+    0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7,
+    0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3, 0xc4, 0xc5,
+    0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2,
+    0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
+    0xf9, 0xfa
+};
+const unsigned char jpeg_huffman_ac_chroma_bits[16] = {0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77};
+const unsigned char jpeg_huffman_ac_chroma_values[162] = {
+    0, 1, 2, 3, 0x11, 4, 5, 0x21, 0x31, 6, 0x12, 0x41, 0x51, 7, 0x61, 0x71,
+    0x13, 0x22, 0x32, 0x81, 8, 0x14, 0x42, 0x91, 0xa1, 0xb1, 0xc1, 9, 0x23, 0x33, 0x52, 0xf0,
+    0x15, 0x62, 0x72, 0xd1, 0x0a, 0x16, 0x24, 0x34, 0xe1, 0x25, 0xf1, 0x17, 0x18, 0x19, 0x1a, 0x26,
+    0x27, 0x28, 0x29, 0x2a, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48,
+    0x49, 0x4a, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68,
+    0x69, 0x6a, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
+    0x88, 0x89, 0x8a, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0xa2, 0xa3, 0xa4, 0xa5,
+    0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xc2, 0xc3,
+    0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda,
+    0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
+    0xf9, 0xfa
+};
+
+
+void jpeg_init_scan(void)
+{
+    int side;
+    int duplex;
+    unsigned int free_bytes;
+    unsigned int page_bytes;
+    unsigned int offset;
+    int index;
+    int copies;
+    int j;
+    int saved_l20;
+    int saved_imask;
+
+    util_mem_clear(&page_buf_count, 0x11ac);
+    if (!hw_hostif_flags.f.own_hostif) {
+        return;
+    }
+    if (!win_sides.f.selection) {
+        duplex = 0;
+    } else {
+        duplex = 1;
+    }
+    jpeg_init_scan_step_2();
+    saved_l20 = page_side_state[0].last_page_forced;
+    jpeg_init_capture_buffers(0);
+    if (duplex == 1) {
+        jpeg_init_capture_buffers(1);
+    }
+    page_side_state[0].last_page_forced = saved_l20;
+    util_mem_clear(edge_side_records, 0x84);
+    util_mem_clear(&edge_side_records[1], 0x84);
+    for (index = 0; index < 3; index++) {
+        edge_top_lines_front[index][0] = 0xffff;
+        edge_top_lines_back[index].w = 0xffff;
+        edge_event_20_lines_front[index][0] = 0xffff;
+        edge_event_20_lines_back[index].w = 0xffff;
+    }
+    free_bytes = img_sdram_bytes[0];
+    free_bytes -= page_capture_bytes.v;
+    offset = page_capture_bytes.v;
+    page_bytes = page_buf_bytes.v;
+    jpeg_scan_flags.v = 0;
+    if (page_bytes > free_bytes) {
+        page_bytes = free_bytes;
+        page_buf_bytes.v = free_bytes;
+        page_buf_limit_bytes = page_buf_bytes.v;
+        if (!win_params.side[0].composition.f.color) {
+            page_buf_limit_bytes = (unsigned)page_buf_limit_bytes * 2 / 3;
+        }
+        saved_imask = _builtin_get_imask();
+        jpeg_sync_buffer_pointer(0, saved_imask);
+        jpeg_sync_buffer_pointer(1, saved_imask);
+    } else {
+        page_buf_limit_bytes = 0;
+    }
+    if (job_long_page_flags & 0x80) {
+        jpeg_scan_flags.v |= JPEG_SCAN_LONG_PAGE;
+    }
+    free_bytes -= page_bytes;
+    page_buf_count.v = 0;
+    while (1) {
+        if (page_buf_count.v >= 33) break;
+        page_records[page_buf_count.v].buf_offset = offset;
+        page_records[page_buf_count.v].sides[0].width_px = img_side_params[0].width_px;
+        page_records[page_buf_count.v].sides[0].length_lines = img_side_params[0].output_length_lines;
+        page_records[page_buf_count.v].sides[1].width_px = img_side_params[1].width_px;
+        page_records[page_buf_count.v].sides[1].length_lines = img_side_params[1].output_length_lines;
+        if (free_bytes > page_bytes) {
+            free_bytes -= page_bytes;
+            offset += page_bytes;
+            page_buf_count.v++;
+        } else {
+            break;
+        }
+    }
+    copies = 33 / page_buf_count.v;
+    page_record_ring = copies * page_buf_count.v;
+    while (1) {
+        if (copies <= 1) break;
+        copies--;
+        for (j = 0; j < page_buf_count.v; j++) {
+            index = copies * page_buf_count.v + j;
+            page_records[index].buf_offset = page_records[j].buf_offset;
+            page_records[index].sides[0].width_px = page_records[j].sides[0].width_px;
+            page_records[index].sides[0].length_lines = page_records[j].sides[0].length_lines;
+            page_records[index].sides[1].width_px = page_records[j].sides[1].width_px;
+            page_records[index].sides[1].length_lines = page_records[j].sides[1].length_lines;
+        }
+    }
+    if (!win_params.flags.f.adf) {
+        page_side_state[0].last_buf = 0;
+        page_side_state[1].last_buf = 0;
+    } else {
+        if (!job_buffer_mode_on) {
+            page_side_state[0].last_buf = 0;
+            page_side_state[1].last_buf = 0;
+        } else if (job_mode_params[0].job_separation[0] & 0x80) {
+            page_side_state[0].last_buf = 0;
+            page_side_state[1].last_buf = 0;
+        }
+        if (page_buf_count.v == 1) {
+            page_buf_count.v = 0;
+        }
+    }
+    if (page_side_state[0].last_buf == 0) {
+        page_buf_count.v = 0;
+    }
+    if (job_long_page_flags & 0x80) {
+        page_buf_count.v = 0;
+        page_side_state[0].last_buf = 0;
+        page_side_state[1].last_buf = 0;
+    }
+    for (side = 0; side <= 1; side++) {
+        if (!job_auto_size_flags.b7 && !job_auto_size_flags.b6 && page_side_state[0].last_buf == 0) {
+            page_side_state[side].uncropped = 1;
+            if (job_double_feed_flags.b.length_check || job_double_feed_flags.b.ultrasonic_check) {
+                page_side_state[side].uncropped = 0;
+            }
+            if (img_crop_area[0].y_start_lines != 0 || img_crop_area[1].y_start_lines != 0) {
+                page_side_state[side].uncropped = 0;
+            }
+        } else {
+            page_side_state[side].uncropped = 0;
+        }
+    }
+    return;
+}
+
+
+struct jpeg_regs_view {
+    char reg_00;
+    struct {
+        unsigned char b7:1,
+                      f65:2,
+                      b4:1,
+                      b3:1,
+                      f0:3;
+    } reg_01;
+    char reg_02;
+    struct Bits reg_03;
+    char reg_04_06[3];
+    unsigned char reg_07;
+    char reg_08;
+    unsigned char reg_09;
+    char reg_0a;
+    unsigned char reg_0b;
+    char reg_0c;
+    unsigned char reg_0d;
+    char reg_0e;
+    unsigned char reg_0f;
+    char reg_10;
+    unsigned char reg_11;
+    char reg_12;
+    unsigned char reg_13;
+    char reg_14;
+    unsigned char reg_15;
+    char reg_16_1c[7];
+    unsigned char reg_1d;
+    char reg_1e;
+    unsigned char reg_1f;
+};
+
+
+void jpeg_setup_next_page(int side)
+{
+    struct win_side *window;
+    struct page_record *current_page;
+    int buf_offset;
+    unsigned int base_64k;
+    unsigned int size_64k;
+    int saved_imask;
+    unsigned short width_px;
+    unsigned short length_lines;
+    unsigned short fill;
+
+    current_page = (struct page_record *)(page_current.v * 136 + (unsigned long)page_records);
+    saved_imask = _builtin_get_imask();
+    window = (struct win_side *)(side * 60 + (unsigned long)win_params.side);
+    jpeg_sync_buffer_pointer(side, saved_imask);
+    _builtin_set_imask(15);
+    width_px = current_page->sides[side].width_px;
+    length_lines = current_page->sides[side].length_lines;
+    buf_offset = current_page->buf_offset;
+    base_64k = (unsigned int)buf_offset >> 16;
+    size_64k = page_buf_bytes.v >> 16;
+    p_pisces_ctrl[side]->ctrl.f.jpeg_access = 1;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_1f = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_03.b2 = 1;
+    p_pisces_ctrl[side]->ctrl.f.jpeg_access = 0;
+    p_pisces_mode[side]->run.f.b12 = 0;
+    p_pisces_mode[side]->run.f.output_on = 0;
+    p_pisces_ctrl[side]->event_enable.f.b7 = 0;
+    p_pisces_ctrl[side]->event_enable.f.b3 = 0;
+    p_pisces_ctrl[side]->event_enable.f.b6 = 0;
+    if (window->compression.f.type & 0x80) {
+        if (window->composition.f.color) {
+            p_pisces_mode[side]->format.f.output_color = 1;
+        } else {
+            p_pisces_mode[side]->format.f.output_color = 0;
+        }
+        p_pisces_mode[side]->format.f.output_format = 1;
+        p_pisces_mode[side]->output_format.f.output_jpeg = 1;
+        p_pisces_mode[side]->output_format.f.f12 = 2;
+    } else {
+        if (window->composition.f.color) {
+            if (win_scanning_order.b4) {
+                p_pisces_mode[side]->format.f.output_format = 3;
+            } else {
+                p_pisces_mode[side]->format.f.output_format = 2;
+            }
+            p_pisces_mode[side]->format.f.output_color = 1;
+            p_pisces_mode[side]->output_format.f.f12 = 3;
+        } else {
+            p_pisces_mode[side]->format.f.output_format = 0;
+            p_pisces_mode[side]->format.f.output_color = 0;
+            p_pisces_mode[side]->output_format.f.f12 = 1;
+        }
+        p_pisces_mode[side]->output_format.f.output_jpeg = 0;
+    }
+    _builtin_set_imask(saved_imask);
+    _builtin_set_gbr(0);
+    _builtin_set_imask(15);
+    if (window->compression.f.type & 0x80) {
+        p_pisces_mode[side]->reg_014.f.f12 = 3;
+    } else {
+        p_pisces_mode[side]->reg_014.f.f12 = 2;
+    }
+    p_pisces_mode[side]->reg_014.f.f14 = 1;
+    p_pisces_output[side]->ctrl.enable = 0;
+    p_pisces_output[side]->addr_high.v = buf_offset >> 16;
+    p_pisces_output[side]->addr_low.v = buf_offset;
+    p_pisces_output[side]->reg_0c6.v = 0;
+    p_pisces_output[side]->reg_0c8.v = 0;
+    p_pisces_output[side]->base_64k = base_64k;
+    p_pisces_output[side]->size_64k = size_64k;
+    p_pisces_output[side]->width = p_pisces_output[side]->width_px = width_px;
+    p_pisces_output[side]->lines = p_pisces_output[side]->reg_0d4 = length_lines;
+    if (page_scanned_count.v == page_sent_count.v) {
+        p_pisces_output[side]->output_gate = 18;
+    } else {
+        p_pisces_output[side]->output_gate = 0;
+    }
+    if (job_long_page_flags & 0x80) {
+        p_pisces_output[side]->output_gate = 18;
+    }
+    fill = img_get_fill_byte(window->reverse_image.f.on, 1);
+    if (!window->composition.f.multi_level) {
+        if (fill == 0) {
+            fill = 0;
+        } else {
+            fill = 0xff;
+        }
+    }
+    p_pisces_output[side]->fill.v = fill;
+    p_pisces_output[side]->fill_cb.lo = 0x80;
+    p_pisces_output[side]->fill_cr.lo = 0x80;
+    _builtin_set_imask(saved_imask);
+    _builtin_set_gbr(0);
+    _builtin_set_imask(15);
+    p_pisces_hostif[side]->ctrl.f.b10 = 0;
+    if (side == 0) {
+        p_pisces_hostif[0]->ctrl.f.b0 = 1;
+        p_pisces_hostif[0]->ctrl.f.b9 = 0;
+        if (!current_page->sides[1].flags.f.data_ready) {
+            p_pisces_hostif[1]->ctrl.f.b0 = 1;
+            p_pisces_hostif[1]->ctrl.f.b9 = 0;
+        }
+    } else {
+        p_pisces_hostif[1]->ctrl.f.b0 = 1;
+        p_pisces_hostif[1]->ctrl.f.b9 = 0;
+        if (!current_page->sides[0].flags.f.data_ready) {
+            p_pisces_hostif[0]->ctrl.f.b0 = 1;
+            p_pisces_hostif[0]->ctrl.f.b9 = 0;
+        }
+    }
+    if (window->compression.f.type & 0x80) {
+        p_pisces_hostif[side]->ctrl.f.b11 = 0;
+    } else if (!window->composition.f.color && !window->composition.f.multi_level && window->reverse_image.f.on) {
+        p_pisces_hostif[side]->ctrl.f.b11 = 0;
+    } else {
+        p_pisces_hostif[side]->ctrl.f.b11 = 1;
+    }
+    if (hw_hostif_flags.f.usb) {
+        p_pisces_hostif[side]->ctrl.f.b8 = 1;
+    } else {
+        p_pisces_hostif[side]->ctrl.f.b8 = 0;
+    }
+    if (window->composition.f.color) {
+        if (window->compression.f.type == SCSI_WIN_COMPRESSION_JPEG1) {
+            p_pisces_jpeg_ctrl[side]->b0 = 0;
+        } else {
+            p_pisces_jpeg_ctrl[side]->b0 = 1;
+        }
+    } else {
+        p_pisces_jpeg_ctrl[side]->b0 = 0;
+    }
+    _builtin_set_imask(saved_imask);
+    _builtin_set_gbr(0);
+    _builtin_set_imask(15);
+    if (window->compression.f.type & 0x80) {
+        jpeg_setup(side, width_px, length_lines);
+    }
+    _builtin_set_imask(saved_imask);
+    _builtin_set_gbr(0);
+    _builtin_set_imask(15);
+    page_jpeg_count_retries[side] = 0;
+    p_pisces_ctrl[side]->event_enable.f.b7 = 1;
+    p_pisces_ctrl[side]->event_enable.f.b3 = 1;
+    p_pisces_ctrl[side]->event_enable.f.b6 = 1;
+    while (1) {
+        if (!p_pisces_ctrl[side]->event_status.f.b7 && !p_pisces_ctrl[side]->event_status.f.b3 && !p_pisces_ctrl[side]->event_status.f.b6) {
+            break;
+        }
+        p_pisces_ctrl[side]->event_enable.f.b7 = 0;
+        p_pisces_ctrl[side]->event_enable.f.b3 = 0;
+        p_pisces_ctrl[side]->event_enable.f.b6 = 0;
+        p_pisces_ctrl[side]->event_enable.f.b7 = 1;
+        p_pisces_ctrl[side]->event_enable.f.b3 = 1;
+        p_pisces_ctrl[side]->event_enable.f.b6 = 1;
+    }
+    p_pisces_mode[side]->run.f.output_on = 1;
+    p_pisces_mode[side]->run.f.b12 = 1;
+    if (window->compression.f.type & 0x80) {
+        ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_03.b0 = 1;
+        p_pisces_ctrl[side]->ctrl.f.jpeg_access = 0;
+    }
+    _builtin_set_imask(saved_imask);
+}
+
+struct jpeg_side_record {
+    char pad_00[24];
+    unsigned short paper_width_px;
+    unsigned short paper_length_lines;
+    char pad_1c[20];
+};
+struct page_record_view_jpeg {
+    char pad_00[4];
+    struct jpeg_side_record sub[2];
+    int buf_offset;
+    int driver_crop;
+};
+
+
+void jpeg_setup(int side, unsigned short width_px, unsigned short length_lines)
+{
+    struct win_side *window;
+    int j;
+    int i;
+    int count;
+    unsigned short *dst;
+    unsigned char *src;
+    unsigned char quality;
+    struct page_record_view_jpeg *current_page;
+    struct jpeg_loaded_record *loaded;
+    int auto_crop;
+
+    current_page = (struct page_record_view_jpeg *)(page_current.v * 136 + (unsigned long)page_records);
+    loaded = &jpeg_loaded_state[side];
+    if (current_page->sub[scsi_read_side.v].paper_width_px != 0 && current_page->sub[scsi_read_side.v].paper_length_lines != 0) {
+        width_px = current_page->sub[side].paper_width_px;
+        length_lines = current_page->sub[side].paper_length_lines;
+    }
+    window = (struct win_side *)(side * 60 + (unsigned long)win_params.side);
+    jpeg_setup_flags[side].b.b0 = 0;
+    _builtin_set_imask(15);
+    p_pisces_ctrl[side]->ctrl.f.jpeg_access = 1;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_03.b7 = 1;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.b7 = 1;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.f65 = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.b4 = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.b3 = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_03.b1 = 1;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_1f = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_03.b2 = 1;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_1d = 0;
+    if (job_auto_size_flags.b7 && current_page->driver_crop != 0) {
+        auto_crop = 1;
+    } else {
+        auto_crop = 0;
+    }
+    if (job_auto_size_flags.b2) {
+        if (settings_byte_0xca[0] & 8) {
+            auto_crop = 0;
+        }
+    } else {
+        auto_crop = 0;
+    }
+    if (window->composition.f.color) {
+        if (window->compression.f.type == SCSI_WIN_COMPRESSION_JPEG1 || auto_crop) {
+            p_pisces_jpeg_ctrl[side]->b0 = 0;
+            ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.f0 = 0;
+        } else {
+            ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.f0 = 1;
+        }
+    } else {
+        ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_01.f0 = 3;
+    }
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_0b = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_0d = 0;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_13 = width_px >> 8;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_15 = width_px;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_0f = length_lines >> 8;
+    ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_11 = length_lines;
+    if (window->composition.f.color) {
+        ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_09 = 60;
+        ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_07 = 20;
+    } else {
+        ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_09 = 0;
+        ((volatile struct jpeg_regs_view *)p_jpeg[side])->reg_07 = 0;
+    }
+    if (auto_crop) {
+        loaded->compression = 0xaaaa;
+    } else {
+        loaded->compression = window->compression.v;
+    }
+    loaded->previous_color = loaded->color;
+    if (window->composition.f.color) {
+        loaded->color = 1;
+    } else {
+        loaded->color = 0;
+    }
+    if (loaded->loaded_compression != loaded->compression || loaded->color != loaded->previous_color || !job_sheet_count || !loaded->compression) {
+    loaded->loaded_compression = loaded->compression;
+    _builtin_set_imask(11);
+    for (i = 0; i < 8; i++) {
+        if (i == 0) {
+            src = jpeg_huffman_dc_luma_bits;
+            count = 16;
+        } else if (i == 1) {
+            src = jpeg_huffman_dc_luma_values;
+            count = 12;
+        } else if (i == 2) {
+            src = jpeg_huffman_ac_luma_bits;
+            count = 16;
+        } else if (i == 3) {
+            src = jpeg_huffman_ac_luma_values;
+            count = 0xa2;
+        } else if (i == 4) {
+            src = jpeg_huffman_dc_chroma_bits;
+            count = 16;
+        } else if (i == 5) {
+            src = jpeg_huffman_dc_chroma_values;
+            count = 12;
+        } else if (i == 6) {
+            src = jpeg_huffman_ac_chroma_bits;
+            count = 16;
+        } else if (i == 7) {
+            src = jpeg_huffman_ac_chroma_values;
+            count = 0xa2;
+        }
+        if (side == 0) {
+            dst = p_jpeg_front_huffman[i];
+        } else {
+            dst = p_jpeg_back_huffman[i];
+        }
+        for (j = 0; j < count; j++) {
+            *dst = *src;
+            dst++;
+            src++;
+        }
+    }
+    quality = window->compression.f.argument;
+    quality &= 0xf;
+    if (auto_crop) {
+        quality = 0x80;
+    }
+    if (quality & 8) {
+        src = jpeg_download_qtables;
+        count = 64;
+        if (side == 0) {
+            dst = p_jpeg_front_qtables[0];
+        } else {
+            dst = p_jpeg_back_qtables[0];
+        }
+        jpeg_write_qtable(dst, src);
+        if (window->composition.f.color) {
+            src = jpeg_download_qtable_chroma;
+        } else {
+            src = jpeg_download_qtables;
+        }
+        if (side == 0) {
+            dst = p_jpeg_front_qtables[1];
+        } else {
+            dst = p_jpeg_back_qtables[1];
+        }
+        jpeg_write_qtable(dst, src);
+    } else if (quality == 0x80) {
+        src = jpeg_qtable_finest;
+        count = 64;
+        if (side == 0) {
+            dst = p_jpeg_front_qtables[0];
+        } else {
+            dst = p_jpeg_back_qtables[0];
+        }
+        jpeg_write_qtable(dst, src);
+        if (window->composition.f.color) {
+            src = jpeg_chroma_qtable_finest;
+        } else {
+            src = jpeg_qtable_finest;
+        }
+        if (side == 0) {
+            dst = p_jpeg_front_qtables[1];
+        } else {
+            dst = p_jpeg_back_qtables[1];
+        }
+        jpeg_write_qtable(dst, src);
+    } else {
+        if ((quality &= 7) == 0 || quality > 7) {
+            quality = 3;
+        } else {
+            quality--;
+        }
+        if (window->compression.f.type == SCSI_WIN_COMPRESSION_JPEG1) {
+            src = ((unsigned char (*)[128])jpeg_qtables_81)[quality & 7];
+        } else {
+            src = ((unsigned char (*)[128])jpeg_qtables_82)[quality & 7];
+        }
+        count = 64;
+        if (side == 0) {
+            dst = p_jpeg_front_qtables[0];
+        } else {
+            dst = p_jpeg_back_qtables[0];
+        }
+        jpeg_write_qtable(dst, src);
+        if (window->composition.f.color) {
+            if (window->compression.f.type == SCSI_WIN_COMPRESSION_JPEG1) {
+                src = ((unsigned char (*)[128])jpeg_chroma_qtables_81)[quality & 7];
+            } else {
+                src = ((unsigned char (*)[128])jpeg_chroma_qtables_82)[quality & 7];
+            }
+        } else {
+            if (window->compression.f.type == SCSI_WIN_COMPRESSION_JPEG1) {
+                src = ((unsigned char (*)[128])jpeg_qtables_81)[quality & 7];
+            } else {
+                src = ((unsigned char (*)[128])jpeg_qtables_82)[quality & 7];
+            }
+        }
+        if (side == 0) {
+            dst = p_jpeg_front_qtables[1];
+        } else {
+            dst = p_jpeg_back_qtables[1];
+        }
+        jpeg_write_qtable(dst, src);
+    }
+    _builtin_set_imask(15);
+    }
+}
+
+void jpeg_write_qtable(unsigned short *dst, unsigned char *src)
+{
+    *dst = src[0];
+    dst++;
+    *dst = src[1];
+    dst++;
+    *dst = src[5];
+    dst++;
+    *dst = src[6];
+    dst++;
+    *dst = src[14];
+    dst++;
+    *dst = src[15];
+    dst++;
+    *dst = src[27];
+    dst++;
+    *dst = src[28];
+    dst++;
+    *dst = src[2];
+    dst++;
+    *dst = src[4];
+    dst++;
+    *dst = src[7];
+    dst++;
+    *dst = src[13];
+    dst++;
+    *dst = src[16];
+    dst++;
+    *dst = src[26];
+    dst++;
+    *dst = src[29];
+    dst++;
+    *dst = src[42];
+    dst++;
+    *dst = src[3];
+    dst++;
+    *dst = src[8];
+    dst++;
+    *dst = src[12];
+    dst++;
+    *dst = src[17];
+    dst++;
+    *dst = src[25];
+    dst++;
+    *dst = src[30];
+    dst++;
+    *dst = src[41];
+    dst++;
+    *dst = src[43];
+    dst++;
+    *dst = src[9];
+    dst++;
+    *dst = src[11];
+    dst++;
+    *dst = src[18];
+    dst++;
+    *dst = src[24];
+    dst++;
+    *dst = src[31];
+    dst++;
+    *dst = src[40];
+    dst++;
+    *dst = src[44];
+    dst++;
+    *dst = src[53];
+    dst++;
+    *dst = src[10];
+    dst++;
+    *dst = src[19];
+    dst++;
+    *dst = src[23];
+    dst++;
+    *dst = src[32];
+    dst++;
+    *dst = src[39];
+    dst++;
+    *dst = src[45];
+    dst++;
+    *dst = src[52];
+    dst++;
+    *dst = src[54];
+    dst++;
+    *dst = src[20];
+    dst++;
+    *dst = src[22];
+    dst++;
+    *dst = src[33];
+    dst++;
+    *dst = src[38];
+    dst++;
+    *dst = src[46];
+    dst++;
+    *dst = src[51];
+    dst++;
+    *dst = src[55];
+    dst++;
+    *dst = src[60];
+    dst++;
+    *dst = src[21];
+    dst++;
+    *dst = src[34];
+    dst++;
+    *dst = src[37];
+    dst++;
+    *dst = src[47];
+    dst++;
+    *dst = src[50];
+    dst++;
+    *dst = src[56];
+    dst++;
+    *dst = src[59];
+    dst++;
+    *dst = src[61];
+    dst++;
+    *dst = src[35];
+    dst++;
+    *dst = src[36];
+    dst++;
+    *dst = src[48];
+    dst++;
+    *dst = src[49];
+    dst++;
+    *dst = src[57];
+    dst++;
+    *dst = src[58];
+    dst++;
+    *dst = src[62];
+    dst++;
+    *dst = src[63];
+    dst++;
+}
+
+
+void jpeg_init_capture_buffers(int side)
+{
+    unsigned int free_bytes;
+    unsigned int buf_bytes;
+    unsigned int offset;
+    int n;
+    int m;
+    unsigned char extra_bufs;
+    int saved_imask;
+
+    saved_imask = _builtin_get_imask();
+    buf_bytes = img_side_params[side].capture_width_px * img_side_params[side].scan_length_lines;
+    buf_bytes <<= 1;
+    if (buf_bytes & 0xffff) {
+        buf_bytes &= 0xffff0000;
+        buf_bytes += 0x10000;
+    }
+    free_bytes = img_sdram_bytes[0];
+    if (job_long_page_flags & 0x80) {
+        extra_bufs = 0;
+    } else if (img_side_params[side].y_res_dpi == 400 && win_long_length == 1) {
+        extra_bufs = 1;
+    } else if (img_side_params[side].y_res_dpi == 600) {
+        if (mdc_adf_deskew_or_overscan_on() && hw_hostif_flags.f.own_hostif && win_params.flags.f.adf && (settings_overscan_control[0] & 0x80)) {
+            extra_bufs = 0;
+        } else {
+            extra_bufs = 1;
+        }
+    } else {
+        free_bytes -= page_buf_bytes.v;
+        extra_bufs = free_bytes / buf_bytes;
+        if (extra_bufs > 3) {
+            extra_bufs = 3;
+        }
+        if (extra_bufs > 0) {
+            extra_bufs--;
+        }
+    }
+    free_bytes -= buf_bytes;
+    if (side == 0) {
+        util_mem_clear(page_side_records, 0x198);
+    }
+    util_mem_clear(&page_side_state[side], 48);
+    offset = 0;
+    while (1) {
+        page_side_state[side].buf[page_side_state[side].last_buf].base_64k.v = offset >> 16;
+        if (free_bytes > buf_bytes && page_side_state[side].last_buf < extra_bufs) {
+            free_bytes -= buf_bytes;
+            offset += buf_bytes;
+            page_side_state[side].last_buf++;
+        } else {
+            break;
+        }
+    }
+    free_bytes = buf_bytes * (page_side_state[side].last_buf + 1);
+    if (job_long_page_flags & 0x80) {
+        if (img_side_params[side].y_res_dpi == 300) {
+            free_bytes += JPEG_LONG_PAGE_RESERVE_4M;
+        } else {
+            free_bytes += JPEG_LONG_PAGE_RESERVE_7M;
+        }
+    }
+    page_capture_bytes.v = free_bytes;
+    buf_bytes = buf_bytes >> 16;
+    p_pisces_capture[side]->size_64k.v = buf_bytes;
+    p_pisces_capture[side]->stride.v = img_side_params[side].capture_width_px;
+    p_pisces_capture[side]->lines.v = img_side_params[side].scan_length_lines;
+    p_pisces_capture[side]->reg_04a.f = 0;
+}
+
+struct usb_regs_jpeg { char p[41]; struct Bits usb_status; };
+
+
+int jpeg_init_scan_step_2(void)
+{
+    struct win_side *window;
+    unsigned int max_len;
+    unsigned int len[2];
+    int side;
+    int usb_fsxhs;
+
+    page_side_state[0].last_page_forced = 0;
+    if (hw_hostif_flags.f.own_hostif && hw_hostif_flags.f.usb && ((struct usb_regs_jpeg *)usb_ctrl)->usb_status.b6) {
+        usb_fsxhs = 1;
+    } else {
+        usb_fsxhs = 0;
+    }
+    if (!win_sides.f.selection) {
+        img_side_params[1].width_px = img_side_params[1].output_length_lines = 0;
+    } else if (win_sides.f.selection == 1) {
+        img_side_params[0].width_px = img_side_params[0].output_length_lines = 0;
+    }
+    for (side = 0; side <= 1; side++) {
+        len[side] = img_side_params[side].width_px * (img_side_params[side].output_length_lines + 8);
+        window = (struct win_side *)(side * 60 + (unsigned long)win_params.side);
+        if (!window->composition.f.multi_level) {
+            len[side] = len[side] >> 3;
+        }
+        if (window->composition.f.color) {
+            len[side] = len[side] << 1;
+        }
+        if (usb_fsxhs) {
+            if (window->composition.f.multi_level && !(window->compression.f.type & 0x80)) {
+                page_side_state[0].last_page_forced = 1;
+            }
+        }
+    }
+    if (len[0] >= len[1]) {
+        max_len = len[0];
+    } else {
+        max_len = len[1];
+    }
+    if (max_len & 0xffff) {
+        max_len &= 0xffff0000;
+        max_len += 0x10000;
+    }
+    page_buf_bytes.v = max_len;
+    return 0;
+}

@@ -1,0 +1,383 @@
+; rt.src: restart stub, delays, divides and memory helpers of the application. Between start.c and
+; edge_search.c.
+; A later version of fw_update_start.src (boot program 2): same delay, clear, copy, compare and
+; set routines, plus a 32-bit divide, strided copies and line sums.
+; Conventions: arguments r4-r7, result r0; only rt_column_sum/rt_column_sum_skip save a register (r14);
+; pool words of the delays from MOV.L #imm (the assembler's automatic pool after the next BRA/RTS),
+; the restart stub's by hand (labels).
+
+          .SECTION P,CODE,ALIGN=4
+          .EXPORT  _rt_restart, _rt_delay, _rt_delay_60, _rt_delay_240, _rt_delay_2400, _rt_delay_24k
+          .EXPORT  _rt_delay_60k, _rt_delay_180k, _rt_divu16, _rt_divu32, _rt_mem_clear, _rt_mem_clear_fast
+          .EXPORT  _rt_mem_copy, _rt_mem_copy_to_odd, _rt_mem_copy_from_odd, _rt_mem_copy_fast, _rt_mem_equal, _rt_mem_compare_count
+          .EXPORT  _rt_mem_all_equal, _rt_mem_set, _rt_column_sum, _rt_column_sum_skip
+          .IMPORT  _hw_restart
+
+; rt_restart, void (void): SR.I = 15, SP = 0, jump to hw_restart (VBR unchanged); doesn't
+; return. Clobbers r0, r1, r15, SR.
+_rt_restart:
+          STC      SR,R0
+          MOV.L    L_IMASK,R1
+          OR       R1,R0
+          LDC      R0,SR
+          MOV.L    L_SP,R15
+          MOV.L    L_ENTRY,R0
+          JMP      @R0
+          NOP
+L_IMASK:  .DATA.L  H'000000F0
+L_ENTRY:  .DATA.L  _hw_restart
+L_SP:     .DATA.L  H'00000000
+
+; rt_delay, void (int n): busy loop of n iterations (2 instructions each). Clobbers r2 (0), T.
+_rt_delay:
+          MOV      R4,R2
+          BRA      L_DELAY
+          NOP
+; Fixed delays, void f(void): as rt_delay with N in the comment. Clobber r2 (0), T.
+_rt_delay_60:                              ; N = 60
+          MOV.L    #60,R2
+          BRA      L_DELAY
+          NOP
+_rt_delay_240:                              ; N = 240
+          MOV.L    #240,R2
+          BRA      L_DELAY
+          NOP
+_rt_delay_2400:                              ; N = 2400
+          MOV.L    #2400,R2
+          BRA      L_DELAY
+          NOP
+_rt_delay_24k:                              ; N = 24000
+          MOV.L    #24000,R2
+          BRA      L_DELAY
+          NOP
+_rt_delay_60k:                              ; N = 60000
+          MOV.L    #60000,R2
+          BRA      L_DELAY
+          NOP
+_rt_delay_180k:                              ; N = 180000
+          MOV.L    #180000,R2
+L_DELAY:
+          DT       R2
+          BF       L_DELAY
+          RTS
+          NOP
+
+; rt_divu16, unsigned short (unsigned a, unsigned short d): a / d, 16-bit quotient (needs
+; a < d << 16); d = 0 gives (unsigned short)a. Clobbers r4, r5, T, M, Q.
+_rt_divu16:
+          TST      R5,R5
+          BT       L_DIVW_END
+          SHLL16   R5
+          DIV0U
+          .AREPEAT 16
+          DIV1     R5,R4
+          .AENDR
+          ROTCL    R4
+L_DIVW_END:
+          EXTU.W   R4,R4
+          RTS
+          MOV      R4,R0
+
+; rt_divu32, unsigned (unsigned a, unsigned d): a / d (32-bit, unsigned); the remainder is
+; left in r6; d = 0 gives a. Clobbers r4, r6, T, M, Q.
+_rt_divu32:
+          TST      R5,R5
+          BT       L_DIVL_END
+          XOR      R6,R6
+          DIV0U
+          .AREPEAT 32
+          ROTCL    R4
+          DIV1     R5,R6
+          .AENDR
+          ROTCL    R4
+L_DIVL_END:
+          RTS
+          MOV      R4,R0
+
+; rt_mem_clear, void (void *p, int n): clear n bytes at p. Clobbers r4, r5 (-1), r6 (0), T.
+_rt_mem_clear:
+          BRA      L_CLRB_TEST
+          MOV      #0,R6
+L_CLRB_LOOP:
+          MOV.B    R6,@R4
+          ADD      #1,R4
+L_CLRB_TEST:
+          TST      R5,R5
+          BF/S     L_CLRB_LOOP
+          ADD      #-1,R5
+          RTS
+          NOP
+
+; rt_mem_clear_fast, void (void *p, int n): clear n bytes, by longs if p and n are multiples of 4,
+; else as rt_mem_clear. No caller. Clobbers r0, r4-r6, T.
+_rt_mem_clear_fast:
+          MOV      R4,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CLRL_N
+          BRA      _rt_mem_clear
+          NOP
+          RTS
+          NOP
+L_CLRL_N:
+          MOV      R5,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CLRL
+          BRA      _rt_mem_clear
+          NOP
+          RTS
+          NOP
+L_CLRL:
+          SHLR2    R5
+          BRA      L_CLRL_TEST
+          MOV      #0,R6
+L_CLRL_LOOP:
+          ADD      #-1,R5
+          MOV.L    R6,@R4
+          ADD      #4,R4
+L_CLRL_TEST:
+          TST      R5,R5
+          BF       L_CLRL_LOOP
+          RTS
+          NOP
+
+; rt_mem_copy, void (void *dst, void *src, int n): copy n bytes. Clobbers r3-r6, T.
+_rt_mem_copy:
+          BRA      L_CPYB_TEST
+          NOP
+L_CPYB_LOOP:
+          MOV.B    @R5+,R3
+          MOV.B    R3,@R4
+          ADD      #1,R4
+L_CPYB_TEST:
+          TST      R6,R6
+          BF/S     L_CPYB_LOOP
+          ADD      #-1,R6
+          RTS
+          NOP
+
+; rt_mem_copy_to_odd, void (void *dst, void *src, int n): copy n bytes from src to every second byte
+; of dst (dst += 2). Clobbers r3-r6, T.
+_rt_mem_copy_to_odd:
+          BRA      L_CPYD_TEST
+          NOP
+L_CPYD_LOOP:
+          MOV.B    @R5+,R3
+          MOV.B    R3,@R4
+          ADD      #2,R4
+L_CPYD_TEST:
+          TST      R6,R6
+          BF/S     L_CPYD_LOOP
+          ADD      #-1,R6
+          RTS
+          NOP
+
+; rt_mem_copy_from_odd, void (void *dst, void *src, int n): copy every second byte of src (src += 2),
+; n of them, to dst. Clobbers r3-r6, T.
+_rt_mem_copy_from_odd:
+          BRA      L_CPYS_TEST
+          NOP
+L_CPYS_LOOP:
+          MOV.B    @R5,R3
+          ADD      #2,R5
+          MOV.B    R3,@R4
+          ADD      #1,R4
+L_CPYS_TEST:
+          TST      R6,R6
+          BF/S     L_CPYS_LOOP
+          ADD      #-1,R6
+          RTS
+          NOP
+
+; rt_mem_copy_fast, void (void *dst, void *src, int n): copy n bytes, by longs if dst, src and n
+; are multiples of 4, else as rt_mem_copy. No caller. Clobbers r0, r3-r6, T.
+_rt_mem_copy_fast:
+          MOV      R4,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CPYL_S
+          BRA      _rt_mem_copy
+          NOP
+          RTS
+          NOP
+L_CPYL_S:
+          MOV      R5,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CPYL_N
+          BRA      _rt_mem_copy
+          NOP
+          RTS
+          NOP
+L_CPYL_N:
+          MOV      R6,R0
+          AND      #3,R0
+          CMP/EQ   #0,R0
+          BT       L_CPYL
+          BRA      _rt_mem_copy
+          NOP
+          RTS
+          NOP
+L_CPYL:
+          BRA      L_CPYL_TEST
+          SHLR2    R6
+L_CPYL_LOOP:
+          ADD      #-1,R6
+          MOV.L    @R5+,R3
+          MOV.L    R3,@R4
+          ADD      #4,R4
+L_CPYL_TEST:
+          TST      R6,R6
+          BF       L_CPYL_LOOP
+          RTS
+          NOP
+
+; rt_mem_equal, int (void *a, void *b, int n): 1 if the n bytes are equal, else 0.
+; Clobbers r2-r6, T.
+_rt_mem_equal:
+          BRA      L_CMP_TEST
+          NOP
+L_CMP_LOOP:
+          MOV.B    @R4+,R3
+          MOV.B    @R5+,R2
+          CMP/EQ   R2,R3
+          BT       L_CMP_TEST
+          RTS
+          MOV      #0,R0
+L_CMP_TEST:
+          TST      R6,R6
+          BF/S     L_CMP_LOOP
+          ADD      #-1,R6
+          RTS
+          MOV      #1,R0
+
+; rt_mem_compare_count, int (void *a, void *b, int n, int *count): as rt_mem_equal, and *count = the
+; number of equal bytes before the first difference. Clobbers r2-r6, T.
+_rt_mem_compare_count:
+          MOV      #0,R3
+          BRA      L_CMPN_TEST
+          MOV.L    R3,@R7
+L_CMPN_LOOP:
+          MOV.B    @R4+,R3
+          MOV.B    @R5+,R2
+          CMP/EQ   R2,R3
+          BT       L_CMPN_NEXT
+          RTS
+          MOV      #0,R0
+L_CMPN_NEXT:
+          MOV.L    @R7,R2
+          ADD      #1,R2
+          MOV.L    R2,@R7
+L_CMPN_TEST:
+          TST      R6,R6
+          BF/S     L_CMPN_LOOP
+          ADD      #-1,R6
+          RTS
+          MOV      #1,R0
+
+; rt_mem_all_equal, int (void *p, unsigned char c, int n, int *count): 1 if all n bytes at p are c,
+; else 0; *count = the number of bytes equal to c before the first other one.
+; Clobbers r2-r6, T.
+_rt_mem_all_equal:
+          EXTU.B   R5,R5
+          MOV      #0,R3
+          BRA      L_CMPC_TEST
+          MOV.L    R3,@R7
+L_CMPC_LOOP:
+          MOV.B    @R4+,R3
+          CMP/EQ   R5,R3
+          BT       L_CMPC_NEXT
+          RTS
+          MOV      #0,R0
+L_CMPC_NEXT:
+          MOV.L    @R7,R2
+          ADD      #1,R2
+          MOV.L    R2,@R7
+L_CMPC_TEST:
+          TST      R6,R6
+          BF/S     L_CMPC_LOOP
+          ADD      #-1,R6
+          RTS
+          MOV      #1,R0
+
+; rt_mem_set, void (void *p, int c, unsigned n): set n bytes at p to c.
+; Clobbers r2 (0), r4, r6, T.
+_rt_mem_set:
+          MOV.L    #0,R2
+L_SETB_TEST:
+          CMP/HI   R2,R6
+          BF       L_SETB_END
+          MOV.B    R5,@R4
+          ADD      #1,R4
+          BRA      L_SETB_TEST
+          DT       R6
+L_SETB_END:
+          RTS
+          NOP
+
+; rt_column_sum, void (unsigned char *src, unsigned short *sum, int rows, int n): rows times,
+; add the next n bytes of src to sum[0..n-1] (column sums; n even, at least 2). Saves r14;
+; clobbers r0-r7, T. No caller.
+_rt_column_sum:
+          MOV      #0,R1
+          MOV      R7,R0
+          MOV.L    R14,@-R15
+          MOV      R6,R14
+L_SUM_ROW:
+          MOV      R5,R6
+          MOV      R1,R7
+L_SUM_COL:
+          ADD      #2,R7
+          MOV.B    @R4+,R3
+          CMP/GE   R0,R7
+          MOV.W    @R6,R2
+          EXTU.B   R3,R3
+          ADD      R3,R2
+          MOV.W    R2,@R6
+          MOV.B    @R4+,R3
+          ADD      #2,R6
+          MOV.W    @R6,R2
+          EXTU.B   R3,R3
+          ADD      R3,R2
+          MOV.W    R2,@R6
+          BF/S     L_SUM_COL
+          ADD      #2,R6
+          DT       R14
+          BF       L_SUM_ROW
+          RTS
+          MOV.L    @R15+,R14
+
+; rt_column_sum_skip, void (unsigned char *src, unsigned short *sum, int rows, int n): as rt_column_sum,
+; but skips n bytes of src after each row (every second line). Saves r14; clobbers r0-r7,
+; T. No caller.
+_rt_column_sum_skip:
+          MOV      #0,R1
+          MOV      R7,R0
+          MOV.L    R14,@-R15
+          MOV      R6,R14
+L_SUM2_ROW:
+          MOV      R5,R6
+          MOV      R1,R7
+L_SUM2_COL:
+          ADD      #2,R7
+          MOV.B    @R4+,R3
+          CMP/GE   R0,R7
+          MOV.W    @R6,R2
+          EXTU.B   R3,R3
+          ADD      R3,R2
+          MOV.W    R2,@R6
+          MOV.B    @R4+,R3
+          ADD      #2,R6
+          MOV.W    @R6,R2
+          EXTU.B   R3,R3
+          ADD      R3,R2
+          MOV.W    R2,@R6
+          BF/S     L_SUM2_COL
+          ADD      #2,R6
+          DT       R14
+          ADD      R0,R4
+          BF       L_SUM2_ROW
+          RTS
+          MOV.L    @R15+,R14
+          .END

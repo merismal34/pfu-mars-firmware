@@ -1,0 +1,50 @@
+/* periph.h: the chip's peripheral blocks, the structs (st_sci, st_intc, ...) of 7144s.h. Included by
+   fw.h and boot.h. The firmware reaches each block through a pointer, never through the header's
+   address macros, so those are undefined again (several files use PB, PE as struct tags). */
+#ifndef PERIPH_H
+#define PERIPH_H
+#include "7144s.h"
+#undef SCI0
+#undef SCI1
+#undef SCI2
+#undef SCI3
+#undef MTU
+#undef MTU0
+#undef MTU1
+#undef MTU2
+#undef MTU3
+#undef MTU4
+#undef POE
+#undef INTC
+#undef PA
+#undef PB
+#undef PC
+#undef PD
+#undef PE
+#undef PF
+#undef PFC
+#undef CMT
+#undef CMT0
+#undef CMT1
+#undef AD0
+#undef AD1
+#undef FLASH
+#undef UBC
+#undef WDT
+#undef SBYCR
+#undef SYSCR
+#undef MST
+#undef BSC
+#undef DMAC
+#undef DMAC0
+#undef DMAC1
+#undef DMAC2
+#undef DMAC3
+#undef DTC
+#undef IIC
+#undef ICDR
+#undef ICMR
+#undef _SAR
+#undef SARX
+#undef HUDI
+#endif
